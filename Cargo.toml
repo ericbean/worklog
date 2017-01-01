@@ -1,0 +1,11 @@
+[package]
+name = "worklog"
+version = "0.1.0"
+authors = ["Eric Beanland <eric.beanland@gmail.com>"]
+publish = false
+
+[dependencies]
+chrono = "0.2"
+csv = "0.14"
+getopts = "0.2"
+rustc-serialize = "0.3"
