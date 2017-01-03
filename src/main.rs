@@ -85,18 +85,29 @@ fn main0() -> Result<i8, WorklogError> {
     if matches.opt_present("h") {
         print_usage(&program, opts);
 
-    } else if matches.opt_present("i") {
-        let time = matches.opt_default("i", "now").unwrap();
-        let time = try!(util::parse_multi_time_fmt(&time));
-        timeclock::mark_time(Direction::In, time, String::new(), csv_file);
-        println!("Clocked in at {}", time.to_rfc3339());
+    } else if matches.opts_present(&["i".to_owned(), "o".to_owned()]) {
+        // The ridiculous array above isn't my fault.
 
-    } else if matches.opt_present("o") {
-        let time = matches.opt_default("o", "now").unwrap();
-        println!("time={}", time);
+        // Reject --in and --out if present at the same time
+        if matches.opt_present("i") && matches.opt_present("o") {
+            println!("--in or --out, not both");
+            return Ok(1);
+        }
+
+        let dir = match matches.opt_present("i") {
+            true => Direction::In,
+            false => Direction::Out,
+        };
+
+        let time =
+            matches.opt_str("i").or(matches.opt_default("o", "now")).unwrap();
         let time = try!(util::parse_multi_time_fmt(&time));
-        timeclock::mark_time(Direction::Out, time, String::new(), csv_file);
-        println!("Clocked out at {}", time.to_rfc3339());
+
+        let memo = matches.opt_str("m").or(Some("".to_owned())).unwrap();
+        timeclock::mark_time(dir, time, memo, csv_file);
+
+        let dir_str = format!("{}", dir).to_lowercase();
+        println!("Clocked {} at {}", dir_str, time.format("%F %I:%M %P"));
 
     } else {
         try!(print_full_summary(&csv_file));
