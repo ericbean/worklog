@@ -143,8 +143,7 @@ fn main0() -> Result<i8, WorklogError> {
         let memo = matches.opt_str("m").or(Some("".to_owned())).unwrap();
         timeclock::mark_time(dir, time, memo, csv_file);
 
-        let dir_str = format!("{}", dir).to_lowercase();
-        println!("Clocked {} at {}", dir_str, time.format("%F %I:%M %P"));
+        println!("Clocked {:#} at {}", dir, time.format("%F %I:%M %P"));
 
     } else if matches.opt_present("s") {
         try!(print_full_summary(&csv_file));
