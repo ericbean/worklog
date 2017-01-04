@@ -17,6 +17,7 @@ use std::env;
 use std::error::Error;
 use std::fs::File;
 use std::fs::OpenOptions;
+use std::io::prelude::*;
 use std::path::PathBuf;
 use timeclock::direction::Direction;
 
@@ -28,6 +29,15 @@ static CSV_FILE_NAME: &'static str = "worklog.csv";
 
 // TODO This belongs in a config file somewhere
 const WEEKSTART: i64 = Weekday::Sat as i64;
+
+
+fn print_csv_entries<R: Read>(file: R) -> Result<(), WorklogError> {
+    let csv_entries = try!(timeclock::read_timesheet(file));
+    for rec in csv_entries {
+        println!("{}", rec);
+    }
+    Ok(())
+}
 
 
 fn print_full_summary(file: &File) -> Result<u8, WorklogError> {
@@ -95,6 +105,7 @@ fn main0() -> Result<i8, WorklogError> {
     opts.optflagopt("o", "out", "out time", "TIME");
     opts.optopt("m", "memo", "the memo", "MEMO");
     opts.optflag("s", "summary", "show the full summary");
+    opts.optflag("e", "entries", "show all entries");
     opts.optflag("h", "help", "print this help menu");
 
     let matches = try!(opts.parse(&args[1..]));
@@ -138,6 +149,9 @@ fn main0() -> Result<i8, WorklogError> {
 
     } else if matches.opt_present("s") {
         try!(print_full_summary(&csv_file));
+
+    } else if matches.opt_present("e") {
+        try!(print_csv_entries(&csv_file));
 
     } else {
         let days_back = (-WEEKSTART + 7) % 7;
