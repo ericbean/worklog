@@ -15,7 +15,6 @@ use error::WorklogError;
 use getopts::Options;
 use std::env;
 use std::error::Error;
-use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::path::PathBuf;
@@ -40,7 +39,7 @@ fn print_csv_entries<R: Read>(file: R) -> Result<(), WorklogError> {
 }
 
 
-fn print_full_summary(file: &File) -> Result<u8, WorklogError> {
+fn print_full_summary<R: Read>(file: R) -> Result<(), WorklogError> {
     let csv_entries = try!(timeclock::read_timesheet(file));
     let entries = timeclock::pair_time_entries(csv_entries);
     let records = timeclock::collect_date_records(entries);
@@ -52,13 +51,13 @@ fn print_full_summary(file: &File) -> Result<u8, WorklogError> {
     }
 
     println!("Total Hours: {:.2}", total_hours);
-    Ok(0)
+    Ok(())
 }
 
 
-fn print_short_summary(file: &File,
-                       since: Date<FixedOffset>)
-                       -> Result<(), WorklogError> {
+fn print_short_summary<R: Read>(file: R,
+                                since: Date<FixedOffset>)
+                                -> Result<(), WorklogError> {
     let csv_entries = try!(timeclock::read_timesheet(file));
     let entries = timeclock::pair_time_entries(csv_entries);
     let records = timeclock::collect_date_records(entries);
