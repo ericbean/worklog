@@ -124,8 +124,10 @@ fn main0() -> Result<i8, WorklogError> {
             false => Direction::Out,
         };
 
-        let time =
-            matches.opt_str("i").or(matches.opt_default("o", "now")).unwrap();
+        let time = matches.opt_str("i")
+            .or(matches.opt_str("o"))
+            .or(Some("now".to_owned()))
+            .unwrap();
         let time = try!(util::parse_multi_time_fmt(&time));
 
         let memo = matches.opt_str("m").or(Some("".to_owned())).unwrap();
