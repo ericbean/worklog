@@ -66,6 +66,7 @@ impl Decodable for TimeEntry {
 
 impl fmt::Display for TimeEntry {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({} {} {})", self.dir, self.time, self.memo)
+        let time = self.time.format("%F %I:%M %P");
+        f.write_fmt(format_args!("{:3} {} {}", self.dir, time, self.memo))
     }
 }
