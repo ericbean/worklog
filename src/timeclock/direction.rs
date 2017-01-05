@@ -69,6 +69,14 @@ mod tests {
     use super::*;
 
     #[test]
+    fn encode_direction_test() {
+        let mut wtr = csv::Writer::from_memory();
+        let _ = wtr.encode(Direction::In);
+        let _ = wtr.encode(Direction::Out);
+        assert!(wtr.as_string() == "In\nOut\n");
+    }
+
+    #[test]
     fn decode_direction_test() {
         let s = "In\nOut\nin\nout\n In\nOut ";
         let vs = s.as_bytes();
