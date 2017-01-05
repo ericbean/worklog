@@ -132,9 +132,9 @@ pub fn now() -> DateTime<FixedOffset> {
 
 #[cfg(test)]
 mod tests {
-    use timeclock::direction::Direction;
     use std::io::Cursor;
     use super::*;
+    use timeclock::direction::Direction;
 
     #[test]
     fn read_timesheet_test() {
