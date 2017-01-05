@@ -70,3 +70,47 @@ impl fmt::Display for TimeEntry {
         f.write_fmt(format_args!("{:3} {} {}", self.dir, time, self.memo))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use csv;
+    use std::io::Cursor;
+    use super::*;
+    use timeclock::direction::Direction;
+    use timeclock::now;
+    use timeclock::timeentry::{fmt_datetime, parse_datetime};
+
+    #[test]
+    fn encode_timeentry_test() {
+        let mut wtr = csv::Writer::from_memory();
+        let timenow = now();
+        let expected = format!("In,{},test memo\n", fmt_datetime(timenow));
+        let _ = wtr.encode(TimeEntry {
+            dir: Direction::In,
+            time: timenow,
+            memo: "test memo".to_owned(),
+        });
+        assert!(wtr.as_string() == expected);
+    }
+
+    #[test]
+    fn decode_timeentry_test() {
+        let timestr = "2017-01-05T14:04:16-0600";
+        let expected_time = parse_datetime(timestr).unwrap();
+        let memo = "test memo";
+        let s = format!("In,{0:},{1:}\nOut,{0:},{1:}\n", timestr, memo);
+        let vs = s.as_bytes();
+        let buff = Cursor::new(vs);
+        let mut rdr = csv::Reader::from_reader(buff).has_headers(false);
+        let records =
+            rdr.decode().collect::<csv::Result<Vec<TimeEntry>>>().unwrap();
+
+        assert!(records[0].dir == Direction::In);
+        assert!(records[1].dir == Direction::Out);
+        assert!(records[0].time == expected_time);
+        assert!(records[1].time == expected_time);
+        assert!(records[0].memo == memo);
+        assert!(records[1].memo == memo);
+        assert!(records.len() == 2);
+    }
+}
