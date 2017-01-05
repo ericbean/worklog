@@ -29,13 +29,13 @@ pub fn read_timesheet<R: Read>(file: R)
 
 /// Match TimeEntrys into pairs of In, Out records, inserting new ones where
 /// complete pairs can't be made.
-pub fn pair_time_entries(records: Vec<TimeEntry>) -> Vec<TimeEntry> {
+pub fn pair_time_entries(records: Box<Vec<TimeEntry>>) -> Vec<TimeEntry> {
     let mut v: Vec<TimeEntry> = Vec::new();
 
     let mut dir = Direction::In;
     let mut prev_time: Option<DateTime<FixedOffset>> = None;
 
-    for rec in records {
+    for rec in *records {
         match (dir, rec.dir) {
             (Direction::In, Direction::Out) => {
                 // expected an In, got an Out
@@ -77,10 +77,10 @@ pub fn pair_time_entries(records: Vec<TimeEntry>) -> Vec<TimeEntry> {
 }
 
 /// Reduce pairs of TimeEntrys into DateRecords
-pub fn collect_date_records(records: Vec<TimeEntry>) -> Vec<DateRecord> {
+pub fn collect_date_records(records: Box<Vec<TimeEntry>>) -> Vec<DateRecord> {
     let mut date_duration_map = BTreeMap::new();
 
-    for slc in records.chunks(2) {
+    for slc in (*records).chunks(2) {
         let r = DateRecord::from_time_entries(&slc[0], &slc[1]);
 
         if !date_duration_map.contains_key(&r.date) {
@@ -183,7 +183,7 @@ mod tests {
                  In,2016-12-20T21:04:57-0600,";
         let vs = s.as_bytes();
         let buff = Cursor::new(vs);
-        let raw_records = read_timesheet(buff).unwrap();
+        let raw_records = Box::new(read_timesheet(buff).unwrap());
         let records = pair_time_entries(raw_records);
 
         println!("\nlen={}", records.len());
@@ -209,7 +209,7 @@ mod tests {
                  In,2016-12-20T21:04:57-0600,";
         let vs = s.as_bytes();
         let buff = Cursor::new(vs);
-        let raw_records = read_timesheet(buff).unwrap();
+        let raw_records = Box::new(read_timesheet(buff).unwrap());
         let records = pair_time_entries(raw_records);
 
         println!("\nlen={}", records.len());
@@ -232,8 +232,8 @@ mod tests {
                  Out,2016-12-18T13:01:50-0600,";
         let vs = s.as_bytes();
         let buff = Cursor::new(vs);
-        let entries = read_timesheet(buff).unwrap();
-        let paired_records = pair_time_entries(entries);
+        let entries = Box::new(read_timesheet(buff).unwrap());
+        let paired_records = Box::new(pair_time_entries(entries));
         let records = collect_date_records(paired_records);
 
         assert!(records.len() == 1);
