@@ -39,7 +39,7 @@ impl Decodable for Direction {
             Err(e) => return Err(e),
         };
 
-        match s.to_lowercase().as_ref() {
+        match s.to_lowercase().trim().as_ref() {
             "in" => return Ok(Direction::In),
             "out" => return Ok(Direction::Out),
             &_ => return Err(d.error("Field must be \"In\" or \"Out\"")),
@@ -64,5 +64,38 @@ impl fmt::Display for Direction {
 
 #[cfg(test)]
 mod tests {
-    // TODO figure out how to test encoding and decoding
+    use csv;
+    use std::io::Cursor;
+    use super::*;
+
+    #[test]
+    fn decode_direction_test() {
+        let s = "In\nOut\nin\nout\n In\nOut ";
+        let vs = s.as_bytes();
+        let buff = Cursor::new(vs);
+        let mut rdr = csv::Reader::from_reader(buff).has_headers(false);
+        let records =
+            rdr.decode().collect::<csv::Result<Vec<Direction>>>().unwrap();
+
+        println!("\nlen={}", records.len());
+        for record in records.clone() {
+            println!("{}", record);
+        }
+
+        for slc in records.chunks(2) {
+            assert!(slc[0] == Direction::In);
+            assert!(slc[1] == Direction::Out);
+        }
+        assert!(records.len() == 6);
+    }
+
+    #[test]
+    #[should_panic(expected = "called `Result::unwrap()` on an `Err` value")]
+    fn decode_direction_fail_test() {
+        let s = "In\nDEADBEEF\nin\nout\n In\nOut ";
+        let vs = s.as_bytes();
+        let buff = Cursor::new(vs);
+        let mut rdr = csv::Reader::from_reader(buff).has_headers(false);
+        let _ = rdr.decode().collect::<csv::Result<Vec<Direction>>>().unwrap();
+    }
 }
