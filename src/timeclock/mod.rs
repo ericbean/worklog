@@ -146,10 +146,10 @@ mod tests {
         let vs = s.as_bytes();
         let buff = Cursor::new(vs);
         let records = read_timesheet(buff).unwrap();
-        assert!(records[0].dir == Direction::In);
-        assert!(records[1].dir == Direction::Out);
-        assert!(records[2].dir == Direction::In);
-        assert!(records[3].dir == Direction::Out);
+        for slc in records.chunks(2) {
+            assert!(slc[0].dir == Direction::In);
+            assert!(slc[1].dir == Direction::Out);
+        }
         // test ordering
         assert!(records[0].time < records[1].time);
         assert!(records[1].time < records[2].time);
@@ -191,14 +191,10 @@ mod tests {
             println!("{}", record);
         }
 
-        assert!(records[0].dir == Direction::In);
-        assert!(records[1].dir == Direction::Out);
-        assert!(records[2].dir == Direction::In);
-        assert!(records[3].dir == Direction::Out);
-        assert!(records[4].dir == Direction::In);
-        assert!(records[5].dir == Direction::Out);
-        assert!(records[6].dir == Direction::In);
-        assert!(records[7].dir == Direction::Out);
+        for slc in records.chunks(2) {
+            assert!(slc[0].dir == Direction::In);
+            assert!(slc[1].dir == Direction::Out);
+        }
         assert!(records.len() == 8);
     }
 
@@ -217,10 +213,10 @@ mod tests {
             println!("{}", record);
         }
 
-        assert!(records[0].dir == Direction::In);
-        assert!(records[1].dir == Direction::Out);
-        assert!(records[2].dir == Direction::In);
-        assert!(records[3].dir == Direction::Out);
+        for slc in records.chunks(2) {
+            assert!(slc[0].dir == Direction::In);
+            assert!(slc[1].dir == Direction::Out);
+        }
         assert!(records.len() == 4);
     }
 
