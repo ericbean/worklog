@@ -40,8 +40,8 @@ fn print_csv_entries<R: Read>(file: R) -> Result<(), WorklogError> {
 
 
 fn print_full_summary<R: Read>(file: R) -> Result<(), WorklogError> {
-    let csv_entries = Box::new(try!(timeclock::read_timesheet(file)));
-    let entries = Box::new(timeclock::pair_time_entries(csv_entries));
+    let csv_entries = try!(timeclock::read_timesheet(file));
+    let entries = timeclock::pair_time_entries(csv_entries);
     let records = timeclock::collect_date_records(entries);
 
     let mut total_hours: f64 = 0.0;
@@ -58,8 +58,8 @@ fn print_full_summary<R: Read>(file: R) -> Result<(), WorklogError> {
 fn print_short_summary<R: Read>(file: R,
                                 since: Date<FixedOffset>)
                                 -> Result<(), WorklogError> {
-    let csv_entries = Box::new(try!(timeclock::read_timesheet(file)));
-    let entries = Box::new(timeclock::pair_time_entries(csv_entries));
+    let csv_entries = try!(timeclock::read_timesheet(file));
+    let entries = timeclock::pair_time_entries(csv_entries);
     let records = timeclock::collect_date_records(entries);
 
     let mut total_hours: f64 = 0.0;
