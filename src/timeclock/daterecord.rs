@@ -7,7 +7,7 @@ use timeclock::timeentry::TimeEntry;
 
 #[derive(Clone,Debug)]
 pub struct DateRecord {
-    pub date: Date<FixedOffset>,
+    date_: Date<FixedOffset>,
     pub duration: Duration,
     pub memo: String,
 }
@@ -26,7 +26,7 @@ impl DateRecord {
             temp_memo.push_str(end.memo.trim());
         }
         DateRecord {
-            date: start.time.date(),
+            date_: start.time.date(),
             duration: end.time - start.time,
             memo: temp_memo,
         }
@@ -49,11 +49,15 @@ impl DateRecord {
     pub fn hours(&self) -> f64 {
         self.seconds() / 3600.0
     }
+
+    pub fn date(&self) -> Date<FixedOffset> {
+        self.date_
+    }
 }
 
 
 impl fmt::Display for DateRecord {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {:.2} {}", self.date, self.hours(), self.memo)
+        write!(f, "{} {:.2} {}", self.date(), self.hours(), self.memo)
     }
 }

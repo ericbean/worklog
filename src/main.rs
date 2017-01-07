@@ -64,7 +64,7 @@ fn print_short_summary<R: Read>(file: R,
 
     let mut total_hours: f64 = 0.0;
     for rec in records {
-        if rec.date >= since {
+        if rec.date() >= since {
             total_hours += rec.hours();
             println!("{}", rec);
         }

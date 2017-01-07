@@ -83,10 +83,10 @@ pub fn collect_date_records(records: Vec<TimeEntry>) -> Vec<DateRecord> {
     for slc in records.chunks(2) {
         let r = DateRecord::from_time_entries(&slc[0], &slc[1]);
 
-        if !date_duration_map.contains_key(&r.date) {
-            date_duration_map.insert(r.date, r);
+        if !date_duration_map.contains_key(&r.date()) {
+            date_duration_map.insert(r.date(), r);
         } else {
-            let mut rec = date_duration_map.remove(&r.date).unwrap();
+            let mut rec = date_duration_map.remove(&r.date()).unwrap();
             rec.duration = rec.duration + r.duration;
             if !r.memo.is_empty() {
                 if !rec.memo.is_empty() {
@@ -95,7 +95,7 @@ pub fn collect_date_records(records: Vec<TimeEntry>) -> Vec<DateRecord> {
                 rec.memo.push_str(&r.memo);
             }
 
-            date_duration_map.insert(rec.date, rec);
+            date_duration_map.insert(rec.date(), rec);
         }
     }
 
