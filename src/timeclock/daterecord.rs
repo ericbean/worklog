@@ -9,7 +9,7 @@ use timeclock::timeentry::TimeEntry;
 pub struct DateRecord {
     date_: Date<FixedOffset>,
     duration: f64,
-    pub memo: String,
+    memo_: String,
 }
 
 
@@ -28,7 +28,7 @@ impl DateRecord {
         DateRecord {
             date_: start.time.date(),
             duration: (end.time - start.time).num_seconds() as f64,
-            memo: temp_memo,
+            memo_: temp_memo,
         }
     }
 
@@ -59,11 +59,28 @@ impl DateRecord {
     pub fn add_seconds(&mut self, secs: f64) {
         self.duration += secs;
     }
+
+
+    /// Returns the memo
+    pub fn memo(&self) -> &str {
+        &self.memo_
+    }
+
+
+    /// Append &str to the memo
+    pub fn append_memo(&mut self, memo: &str) {
+        if !self.memo_.is_empty() && !memo.is_empty() {
+            self.memo_.push_str(", ");
+            self.memo_.push_str(memo);
+        } else if self.memo_.is_empty() {
+            self.memo_.push_str(memo);
+        }
+    }
 }
 
 
 impl fmt::Display for DateRecord {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {:.2} {}", self.date(), self.hours(), self.memo)
+        write!(f, "{} {:.2} {}", self.date(), self.hours(), self.memo())
     }
 }
