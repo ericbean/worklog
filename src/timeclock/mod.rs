@@ -87,7 +87,7 @@ pub fn collect_date_records(records: Vec<TimeEntry>) -> Vec<DateRecord> {
             date_duration_map.insert(r.date(), r);
         } else {
             let mut rec = date_duration_map.remove(&r.date()).unwrap();
-            rec.duration = rec.duration + r.duration;
+            rec.add_seconds(r.seconds());
             if !r.memo.is_empty() {
                 if !rec.memo.is_empty() {
                     rec.memo.push_str(",");
