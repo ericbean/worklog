@@ -15,21 +15,14 @@ pub struct DateRecord {
 
 impl DateRecord {
     pub fn from_time_entries(start: &TimeEntry, end: &TimeEntry) -> DateRecord {
-        let mut temp_memo = String::new();
-        if !start.memo.is_empty() {
-            temp_memo.push_str(start.memo.trim());
-        }
-        if !end.memo.is_empty() {
-            if !start.memo.is_empty() {
-                temp_memo.push_str(", ");
-            }
-            temp_memo.push_str(end.memo.trim());
-        }
-        DateRecord {
+        let mut dr = DateRecord {
             date_: start.time.date(),
             duration: (end.time - start.time).num_seconds() as f64,
-            memo_: temp_memo,
-        }
+            memo_: String::new(),
+        };
+        dr.append_memo(&start.memo);
+        dr.append_memo(&end.memo);
+        return dr;
     }
 
     /// Get the duration, expressed in seconds
