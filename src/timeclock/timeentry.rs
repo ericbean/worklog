@@ -26,6 +26,21 @@ pub struct TimeEntry {
 }
 
 
+impl TimeEntry {
+    #[allow(dead_code)]
+    pub fn new(dir: Direction,
+               time: DateTime<FixedOffset>,
+               memo: &str)
+               -> Self {
+        TimeEntry {
+            dir: dir,
+            time: time,
+            memo: memo.to_owned(),
+        }
+    }
+}
+
+
 impl Encodable for TimeEntry {
     fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
         s.emit_struct("TimeEntry", 3, |s| {
@@ -79,6 +94,15 @@ mod tests {
     use timeclock::direction::Direction;
     use timeclock::now;
     use timeclock::timeentry::{fmt_datetime, parse_datetime};
+
+    #[test]
+    fn timeentry_constructor_test() {
+        let time = now();
+        let te = TimeEntry::new(Direction::In, time, "Memo");
+        assert_eq!(te.dir, Direction::In);
+        assert_eq!(te.time, time);
+        assert_eq!(te.memo, "Memo");
+    }
 
     #[test]
     fn encode_timeentry_test() {
