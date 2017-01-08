@@ -86,7 +86,8 @@ impl DateRecord {
 
 impl fmt::Display for DateRecord {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {:.2} {}", self.date(), self.hours(), self.memo())
+        let date = self.date.format("%F");
+        write!(f, "{} {:.2} {}", date, self.hours(), self.memo)
     }
 }
 
@@ -140,6 +141,6 @@ mod tests {
     fn fmt_display_test() {
         let dr = daterecord_helper();
         let s = format!("{}", dr);
-        assert!(s == "2017-01-07-06:00 1.20 Test")
+        assert!(s == "2017-01-07 1.20 Test")
     }
 }
