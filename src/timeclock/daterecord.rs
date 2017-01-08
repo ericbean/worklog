@@ -7,18 +7,18 @@ use timeclock::timeentry::TimeEntry;
 
 #[derive(Clone,Debug)]
 pub struct DateRecord {
-    date_: Date<FixedOffset>,
+    date: Date<FixedOffset>,
     duration: f64,
-    memo_: String,
+    memo: String,
 }
 
 
 impl DateRecord {
     pub fn from_time_entries(start: &TimeEntry, end: &TimeEntry) -> DateRecord {
         let mut dr = DateRecord {
-            date_: start.time.date(),
+            date: start.time.date(),
             duration: (end.time - start.time).num_seconds() as f64,
-            memo_: String::new(),
+            memo: String::new(),
         };
         dr.append_memo(&start.memo);
         dr.append_memo(&end.memo);
@@ -30,9 +30,9 @@ impl DateRecord {
     /// Construct a DateRecord from it's constituent parts
     pub fn from_parts(date: Date<FixedOffset>, dur: f64, memo: &str) -> Self {
         DateRecord {
-            date_: date,
+            date: date,
             duration: dur,
-            memo_: memo.to_owned(),
+            memo: memo.to_owned(),
         }
     }
 
@@ -57,7 +57,7 @@ impl DateRecord {
 
 
     pub fn date(&self) -> Date<FixedOffset> {
-        self.date_
+        self.date
     }
 
 
@@ -68,17 +68,17 @@ impl DateRecord {
 
     /// Returns the memo
     pub fn memo(&self) -> &str {
-        &self.memo_
+        &self.memo
     }
 
 
     /// Append &str to the memo
     pub fn append_memo(&mut self, memo: &str) {
-        if !self.memo_.is_empty() && !memo.is_empty() {
-            self.memo_.push_str(", ");
-            self.memo_.push_str(memo);
-        } else if self.memo_.is_empty() {
-            self.memo_.push_str(memo);
+        if !self.memo.is_empty() && !memo.is_empty() {
+            self.memo.push_str(", ");
+            self.memo.push_str(memo);
+        } else if self.memo.is_empty() {
+            self.memo.push_str(memo);
         }
     }
 }
@@ -124,5 +124,22 @@ mod tests {
         // append actual str
         dr.append_memo("success!");
         assert!(dr.memo() == "Test, success!");
+    }
+
+    #[test]
+    fn fmt_debug_test() {
+        let dr = daterecord_helper();
+        let s = format!("{:?}", dr);
+        println!("{:?}", dr);
+        assert!(s ==
+                "DateRecord { date: 2017-01-07-06:00, \
+                duration: 4321.098765, memo: \"Test\" }")
+    }
+
+    #[test]
+    fn fmt_display_test() {
+        let dr = daterecord_helper();
+        let s = format!("{}", dr);
+        assert!(s == "2017-01-07-06:00 1.20 Test")
     }
 }
