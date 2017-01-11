@@ -14,7 +14,6 @@ use chrono::*;
 use error::WorklogError;
 use getopts::Options;
 use std::env;
-use std::error::Error;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::path::PathBuf;
@@ -164,6 +163,6 @@ fn main0() -> Result<i8, WorklogError> {
 fn main() {
     match main0() {
         Ok(_) => {}
-        Err(err) => println!("Whoops! {}", err.description()),
+        Err(err) => println!("Whoops! {}", err),
     };
 }
