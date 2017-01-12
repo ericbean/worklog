@@ -6,7 +6,7 @@ use timeclock::timeentry::TimeEntry;
 
 /// Option-like enclosure for TimeEntrys
 #[derive(Debug,PartialEq)]
-pub enum TimeEntryOpt {
+enum TimeEntryOpt {
     In(TimeEntry),
     Out(TimeEntry),
     Invalid,
