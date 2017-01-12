@@ -170,6 +170,7 @@ mod tests {
             let (s, e) = (pair.start(), pair.end());
             assert_eq!(s.dir, Direction::In);
             assert_eq!(e.dir, Direction::Out);
+            assert_eq!(e.memo, "Still clocked in.");
         }
     }
 

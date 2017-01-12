@@ -132,19 +132,16 @@ mod tests {
                  In,2016-12-20T21:04:57-0600,";
         let vs = s.as_bytes();
         let buff = Cursor::new(vs);
-        let raw_records = read_timesheet(buff).unwrap();
-        let records = pair_time_entries(raw_records);
+        let entries = read_timesheet(buff).unwrap();
+        let records = timeentry_pairs(entries.into_iter())
+            .collect::<Vec<TimeEntryPair>>();
 
-        println!("\nlen={}", records.len());
-        for record in records.clone() {
-            println!("{}", record);
-        }
+        assert!(records.len() == 4);
 
-        for slc in records.chunks(2) {
-            assert!(slc[0].dir == Direction::In);
-            assert!(slc[1].dir == Direction::Out);
+        for tep in records {
+            assert!(tep.start().dir == Direction::In);
+            assert!(tep.end().dir == Direction::Out);
         }
-        assert!(records.len() == 8);
     }
 
 
@@ -154,19 +151,16 @@ mod tests {
                  In,2016-12-20T21:04:57-0600,";
         let vs = s.as_bytes();
         let buff = Cursor::new(vs);
-        let raw_records = read_timesheet(buff).unwrap();
-        let records = pair_time_entries(raw_records);
+        let entries = read_timesheet(buff).unwrap();
+        let records = timeentry_pairs(entries.into_iter())
+            .collect::<Vec<TimeEntryPair>>();
 
-        println!("\nlen={}", records.len());
-        for record in records.clone() {
-            println!("{}", record);
-        }
+        assert!(records.len() == 2);
 
-        for slc in records.chunks(2) {
-            assert!(slc[0].dir == Direction::In);
-            assert!(slc[1].dir == Direction::Out);
+        for tep in records {
+            assert!(tep.start().dir == Direction::In);
+            assert!(tep.end().dir == Direction::Out);
         }
-        assert!(records.len() == 4);
     }
 
 
@@ -191,8 +185,7 @@ mod tests {
         let vs = s.as_bytes();
         let buff = Cursor::new(vs);
         let entries = read_timesheet(buff).unwrap();
-        let paired_records = pair_time_entries(entries);
-        let records = collect_date_records(paired_records);
+        let records = collect_date_records(entries);
 
         assert!(records.len() == 1);
         println!("\n{}", records[0].seconds());
