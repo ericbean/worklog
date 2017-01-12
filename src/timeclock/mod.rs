@@ -6,7 +6,7 @@ pub mod daterecord;
 pub mod direction;
 pub mod error;
 pub mod timeentry;
-pub mod timeentrypair;
+mod timeentrypair;
 
 use chrono::*;
 use csv;
@@ -14,6 +14,8 @@ use self::daterecord::DateRecord;
 use self::direction::Direction;
 use self::error::TimeClockError;
 use self::timeentry::TimeEntry;
+pub use self::timeentrypair::{TimeEntryPair, TimeEntryPairsIter,
+                              timeentry_pairs};
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::SeekFrom;
@@ -81,8 +83,8 @@ pub fn pair_time_entries(records: Vec<TimeEntry>) -> Vec<TimeEntry> {
 pub fn collect_date_records(records: Vec<TimeEntry>) -> Vec<DateRecord> {
     let mut date_duration_map = BTreeMap::new();
 
-    for slc in records.chunks(2) {
-        let r = DateRecord::from_time_entries(&slc[0], &slc[1]);
+    for tep in timeentry_pairs(records.into_iter()) {
+        let r = DateRecord::from(tep);
 
         if !date_duration_map.contains_key(&r.date()) {
             date_duration_map.insert(r.date(), r);

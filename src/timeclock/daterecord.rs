@@ -2,6 +2,7 @@
 
 use chrono::*;
 use std::fmt;
+use timeclock::TimeEntryPair;
 use timeclock::timeentry::TimeEntry;
 
 
@@ -91,6 +92,12 @@ impl fmt::Display for DateRecord {
     }
 }
 
+
+impl From<TimeEntryPair> for DateRecord {
+    fn from(tep: TimeEntryPair) -> Self {
+        DateRecord::from_time_entries(tep.start(), tep.end())
+    }
+}
 
 #[cfg(test)]
 mod tests {
