@@ -2,8 +2,8 @@
 
 use chrono::*;
 use std::fmt;
+use timeclock::TimeEntry;
 use timeclock::TimeEntryPair;
-use timeclock::timeentry::TimeEntry;
 
 
 #[derive(Clone,Debug)]

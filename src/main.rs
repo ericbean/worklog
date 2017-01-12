@@ -17,7 +17,7 @@ use std::env;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::path::PathBuf;
-use timeclock::direction::Direction;
+use timeclock::Direction;
 use timeclock::now;
 
 

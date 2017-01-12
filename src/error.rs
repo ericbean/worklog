@@ -4,7 +4,7 @@ use std::env;
 use std::error::Error;
 use std::fmt;
 use std::io;
-use timeclock::error::TimeClockError;
+use timeclock::TimeClockError;
 
 #[derive(Debug)]
 pub enum WorklogError {

@@ -2,17 +2,17 @@
 extern crate chrono;
 extern crate rustc_serialize;
 
-pub mod daterecord;
-pub mod direction;
-pub mod error;
-pub mod timeentry;
+mod daterecord;
+mod direction;
+mod error;
+mod timeentry;
 mod timeentrypair;
 
 use chrono::*;
 use csv;
-use self::daterecord::DateRecord;
-use self::direction::Direction;
-use self::error::TimeClockError;
+pub use self::daterecord::DateRecord;
+pub use self::direction::Direction;
+pub use self::error::TimeClockError;
 pub use self::timeentry::TimeEntry;
 pub use self::timeentrypair::{TimeEntryPair, TimeEntryPairsIter,
                               timeentry_pairs};
@@ -83,7 +83,6 @@ pub fn now() -> DateTime<FixedOffset> {
 mod tests {
     use std::io::Cursor;
     use super::*;
-    use timeclock::direction::Direction;
 
     #[test]
     fn read_timesheet_test() {

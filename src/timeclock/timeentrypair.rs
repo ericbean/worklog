@@ -2,7 +2,7 @@ use std::convert::From;
 use std::iter::Iterator;
 use std::mem;
 use timeclock::{TimeEntry, now};
-use timeclock::direction::Direction;
+use timeclock::Direction;
 
 /// Option-like enclosure for TimeEntrys
 #[derive(Debug,PartialEq)]
