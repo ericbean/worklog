@@ -13,7 +13,7 @@ use csv;
 use self::daterecord::DateRecord;
 use self::direction::Direction;
 use self::error::TimeClockError;
-use self::timeentry::TimeEntry;
+pub use self::timeentry::TimeEntry;
 pub use self::timeentrypair::{TimeEntryPair, TimeEntryPairsIter,
                               timeentry_pairs};
 use std::collections::BTreeMap;
@@ -218,6 +218,19 @@ mod tests {
         assert!(records.len() == 4);
     }
 
+
+    #[test]
+    fn collect_date_records_test() {
+        let time = now();
+        let records = vec![TimeEntry::new(Direction::In, time, "In"),
+                           TimeEntry::new(Direction::Out, time, "Out")];
+
+        let res = collect_date_records(records);
+        assert_eq!(res.len(), 1);
+        let dr = res.first().unwrap();
+        assert_eq!(dr.date(), time.date());
+        assert_eq!(dr.hours(), 0.0);
+    }
 
     #[test]
     fn collect_date_records_tz_test() {
