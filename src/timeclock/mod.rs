@@ -30,55 +30,6 @@ pub fn read_timesheet<R: Read>(file: R)
     return Ok(in_v);
 }
 
-/// Match TimeEntrys into pairs of In, Out records, inserting new ones where
-/// complete pairs can't be made.
-pub fn pair_time_entries(records: Vec<TimeEntry>) -> Vec<TimeEntry> {
-    let mut v: Vec<TimeEntry> = Vec::new();
-
-    let mut dir = Direction::In;
-    let mut prev_time: Option<DateTime<FixedOffset>> = None;
-
-    for rec in records {
-        match (dir, rec.dir) {
-            (Direction::In, Direction::Out) => {
-                // expected an In, got an Out
-                v.push(TimeEntry {
-                    dir: Direction::In,
-                    time: rec.time,
-                    memo: String::from("Missing clock in."),
-                });
-                v.push(rec.clone());
-                dir = Direction::Out;
-            }
-            (Direction::Out, Direction::In) => {
-                // expected an Out, got an In
-                v.push(TimeEntry {
-                    dir: Direction::Out,
-                    time: prev_time.or(Some(rec.time)).unwrap(),
-                    memo: String::from("Missing clock out."),
-                });
-                v.push(rec.clone());
-                dir = Direction::Out;
-            }
-            (_, _) => v.push(rec.clone()),
-        }
-        dir = dir.reverse();
-        prev_time = Some(rec.time);
-    }
-
-    // if the for loop ends on a Direction::In record, then we need to add
-    // an out record to balance it.
-    if v.len() % 2 != 0 {
-        v.push(TimeEntry {
-            dir: Direction::Out,
-            time: now(),
-            memo: String::from("Still clocked in."),
-        });
-    }
-
-    return v;
-}
-
 /// Reduce pairs of TimeEntrys into DateRecords
 pub fn collect_date_records(records: Vec<TimeEntry>) -> Vec<DateRecord> {
     let mut date_duration_map = BTreeMap::new();
@@ -121,7 +72,7 @@ pub fn mark_time(d: Direction,
     let _ = wtr.encode(record);
 }
 
-
+/// Get the current date and time as a DateTime<FixedOffset>
 pub fn now() -> DateTime<FixedOffset> {
     let lt: DateTime<Local> = Local::now();
     DateTime::parse_from_rfc3339(lt.to_rfc3339().as_ref()).unwrap()

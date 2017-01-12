@@ -1,14 +1,6 @@
 use chrono::*;
 use error::WorklogError;
-
-/// Get the current date and time as a DateTime<FixedOffset>
-pub fn now() -> DateTime<FixedOffset> {
-    // TODO do this in a less ignorant way
-    let lt: DateTime<Local> = Local::now();
-    // If unwrap() panics here you consider installing a real OS.
-    DateTime::parse_from_rfc3339(lt.to_rfc3339().as_ref()).unwrap()
-}
-
+use timeclock::now;
 
 /// Helper fn for parse_multi_time_fmt()
 /// Parse time from various formats. Returns the current date combined with

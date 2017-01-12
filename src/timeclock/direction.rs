@@ -10,16 +10,6 @@ pub enum Direction {
 }
 
 
-impl Direction {
-    pub fn reverse(&self) -> Direction {
-        match self {
-            &Direction::In => Direction::Out,
-            &Direction::Out => Direction::In,
-        }
-    }
-}
-
-
 impl Encodable for Direction {
     fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
         s.emit_enum("Direction", |s| {

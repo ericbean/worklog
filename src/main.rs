@@ -18,6 +18,7 @@ use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::path::PathBuf;
 use timeclock::direction::Direction;
+use timeclock::now;
 
 
 #[cfg(target_family = "unix")]
@@ -40,8 +41,7 @@ fn print_csv_entries<R: Read>(file: R) -> Result<(), WorklogError> {
 
 fn print_full_summary<R: Read>(file: R) -> Result<(), WorklogError> {
     let csv_entries = try!(timeclock::read_timesheet(file));
-    let entries = timeclock::pair_time_entries(csv_entries);
-    let records = timeclock::collect_date_records(entries);
+    let records = timeclock::collect_date_records(csv_entries);
 
     let mut total_hours: f64 = 0.0;
     for rec in records {
@@ -58,8 +58,7 @@ fn print_short_summary<R: Read>(file: R,
                                 since: Date<FixedOffset>)
                                 -> Result<(), WorklogError> {
     let csv_entries = try!(timeclock::read_timesheet(file));
-    let entries = timeclock::pair_time_entries(csv_entries);
-    let records = timeclock::collect_date_records(entries);
+    let records = timeclock::collect_date_records(csv_entries);
 
     let mut total_hours: f64 = 0.0;
     for rec in records {
@@ -152,7 +151,7 @@ fn main0() -> Result<i8, WorklogError> {
 
     } else {
         let days_back = (-WEEKSTART + 7) % 7;
-        let start_date = util::now().date() - Duration::days(days_back);
+        let start_date = now().date() - Duration::days(days_back);
         try!(print_short_summary(&csv_file, start_date));
     }
 
