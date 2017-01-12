@@ -1,8 +1,8 @@
 use std::convert::From;
 use std::iter::Iterator;
 use std::mem;
+use timeclock::{TimeEntry, now};
 use timeclock::direction::Direction;
-use timeclock::timeentry::TimeEntry;
 
 /// Option-like enclosure for TimeEntrys
 #[derive(Debug,PartialEq)]
@@ -99,9 +99,8 @@ impl<I> Iterator for TimeEntryPairsIter<I>
                 Some(TimeEntryPair::new(start, end))
             }
             (TimeEntryOpt::In(start), TimeEntryOpt::Invalid) => {
-                let mut end = start.clone();
-                end.dir = Direction::Out;
-                end.memo = String::from("Missing clock out.");
+                let end =
+                    TimeEntry::new(Direction::Out, now(), "Still clocked in.");
                 Some(TimeEntryPair::new(start, end))
             }
             (TimeEntryOpt::In(start), TimeEntryOpt::Out(end)) => {
