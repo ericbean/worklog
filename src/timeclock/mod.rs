@@ -6,6 +6,7 @@ pub mod daterecord;
 pub mod direction;
 pub mod error;
 pub mod timeentry;
+pub mod timeentrypair;
 
 use chrono::*;
 use csv;

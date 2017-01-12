@@ -18,7 +18,7 @@ fn parse_datetime(s: &str) -> ParseResult<DateTime<FixedOffset>> {
 }
 
 
-#[derive(Clone, Debug)]
+#[derive(Clone,Debug,PartialEq)]
 pub struct TimeEntry {
     pub dir: Direction,
     pub time: DateTime<FixedOffset>,
