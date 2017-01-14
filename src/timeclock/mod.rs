@@ -7,6 +7,7 @@ mod direction;
 mod error;
 mod timeentry;
 mod timeentrypair;
+mod daterecorditer;
 
 use chrono::*;
 use csv;
