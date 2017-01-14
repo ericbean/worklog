@@ -2,7 +2,7 @@ use chrono::*;
 use error::WorklogError;
 use timeclock::now;
 
-/// Helper fn for parse_multi_time_fmt()
+/// Helper fn for `parse_multi_time_fmt`
 /// Parse time from various formats. Returns the current date combined with
 /// the parsed time.
 fn parse_time(timestr: &str) -> Result<DateTime<FixedOffset>, WorklogError> {
@@ -18,7 +18,7 @@ fn parse_time(timestr: &str) -> Result<DateTime<FixedOffset>, WorklogError> {
 }
 
 
-/// Helper fn for parse_multi_time_fmt()
+/// Helper fn for `parse_multi_time_fmt`
 /// Parse a datetime from various formats.
 fn parse_datetime(timestr: &str)
                   -> Result<DateTime<FixedOffset>, WorklogError> {
@@ -45,7 +45,7 @@ pub fn parse_multi_time_fmt(timestr: &str)
         return Ok(now());
     }
 
-    parse_time(timestr).or(parse_datetime(timestr))
+    parse_time(timestr).or_else(|_| parse_datetime(timestr))
 }
 
 

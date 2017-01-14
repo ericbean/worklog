@@ -23,7 +23,7 @@ impl DateRecord {
         };
         dr.append_memo(&start.memo);
         dr.append_memo(&end.memo);
-        return dr;
+        dr
     }
 
 
@@ -40,7 +40,7 @@ impl DateRecord {
 
     /// Get the duration, expressed in seconds
     pub fn seconds(&self) -> f64 {
-        self.duration
+        self.duration.clone()
     }
 
 
@@ -58,7 +58,7 @@ impl DateRecord {
 
 
     pub fn date(&self) -> Date<FixedOffset> {
-        self.date
+        self.date.clone()
     }
 
 

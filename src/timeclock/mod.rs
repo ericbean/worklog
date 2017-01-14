@@ -29,31 +29,28 @@ pub fn read_timesheet<R: Read>(file: R)
     let mut in_v = rdr.decode().collect::<csv::Result<Vec<TimeEntry>>>()?;
     in_v.sort_by_key(|k| k.time);
 
-    return Ok(in_v);
+    Ok(in_v)
 }
 
-/// Reduce pairs of TimeEntrys into DateRecords
+/// Reduce pairs of `TimeEntrys` into `DateRecords`
 pub fn collect_date_records(records: Vec<TimeEntry>) -> Vec<DateRecord> {
     let mut date_duration_map = BTreeMap::new();
 
+    // Clippy complains about this but it's going away eventually.
     for r in timeentry_pairs(records.into_iter()).daterecords() {
-
         if !date_duration_map.contains_key(&r.date()) {
             date_duration_map.insert(r.date(), r);
         } else {
             let mut rec = date_duration_map.remove(&r.date()).unwrap();
             rec.add_seconds(r.seconds());
-            rec.append_memo(&r.memo());
-
+            rec.append_memo(r.memo());
             date_duration_map.insert(rec.date(), rec);
         }
     }
 
-    let v: Vec<DateRecord> = date_duration_map.iter()
+    date_duration_map.iter()
         .map(|(_, r)| r.clone())
-        .collect();
-
-    return v;
+        .collect::<Vec<DateRecord>>()
 }
 
 
@@ -73,7 +70,7 @@ pub fn mark_time(d: Direction,
     let _ = wtr.encode(record);
 }
 
-/// Get the current date and time as a DateTime<FixedOffset>
+/// Get the current date and time as a `DateTime`<`FixedOffset`>
 pub fn now() -> DateTime<FixedOffset> {
     let lt: DateTime<Local> = Local::now();
     DateTime::parse_from_rfc3339(lt.to_rfc3339().as_ref()).unwrap()

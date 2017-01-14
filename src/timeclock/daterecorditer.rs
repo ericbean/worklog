@@ -2,7 +2,7 @@ use std::iter::Iterator;
 use std::marker::Sized;
 use timeclock::DateRecord;
 
-/// Iterator adapter to create DateRecords
+/// Iterator adapter to create `DateRecords`
 pub struct DateRecordIter<I> {
     v: I,
 }

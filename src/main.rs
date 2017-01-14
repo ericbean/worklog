@@ -89,7 +89,7 @@ fn get_csv_path() -> Result<PathBuf, WorklogError> {
     };
 
     data_path.push(CSV_FILE_NAME);
-    return Ok(data_path);
+    Ok(data_path)
 }
 
 
@@ -127,18 +127,20 @@ fn main0() -> Result<i8, WorklogError> {
             return Ok(1);
         }
 
-        let dir = match matches.opt_present("i") {
-            true => Direction::In,
-            false => Direction::Out,
+        let dir = if matches.opt_present("i") {
+            Direction::In
+        } else {
+            Direction::Out
         };
 
         let time = matches.opt_str("i")
             .or(matches.opt_str("o"))
-            .or(Some("now".to_owned()))
+            .or_else(|| Some("now".to_owned()))
             .unwrap();
         let time = try!(util::parse_multi_time_fmt(&time));
 
-        let memo = matches.opt_str("m").or(Some("".to_owned())).unwrap();
+        let memo =
+            matches.opt_str("m").or_else(|| Some("".to_owned())).unwrap();
         timeclock::mark_time(dir, time, memo, csv_file);
 
         println!("Clocked {:#} at {}", dir, time.format("%F %I:%M %P"));

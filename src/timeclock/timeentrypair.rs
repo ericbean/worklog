@@ -6,7 +6,7 @@ use timeclock::Direction;
 use timeclock::daterecorditer::DateRecordIter;
 use timeclock::daterecorditer::IntoDateRecords;
 
-/// Option-like enclosure for TimeEntrys
+/// Option-like enclosure for `TimeEntrys`
 #[derive(Debug,PartialEq)]
 enum TimeEntryOpt {
     In(TimeEntry),
@@ -60,13 +60,13 @@ impl TimeEntryPair {
 }
 
 
-/// Iterator to create TimeEntryPairs from TimeEntrys
+/// Iterator to create `TimeEntryPairs` from `TimeEntrys`
 pub struct TimeEntryPairsIter<I> {
     buf: TimeEntryOpt,
     v: I,
 }
 
-/// Constructor for TimeEntryPairsIter
+/// Constructor for `TimeEntryPairsIter`
 pub fn timeentry_pairs<I>(entries: I) -> TimeEntryPairsIter<I>
     where I: Iterator<Item = TimeEntry>
 {
@@ -102,14 +102,8 @@ impl<I> Iterator for TimeEntryPairsIter<I>
             (TimeEntryOpt::In(start), TimeEntryOpt::Out(end)) => {
                 Some(TimeEntryPair::new(start, end))
             }
+            (TimeEntryOpt::Out(end), TimeEntryOpt::In(saved)) |
             (TimeEntryOpt::Out(end), TimeEntryOpt::Out(saved)) => {
-                let mut start = end.clone();
-                start.dir = Direction::In;
-                start.memo = String::from("Missing clock in.");
-                self.buf = TimeEntryOpt::from(saved);
-                Some(TimeEntryPair::new(start, end))
-            }
-            (TimeEntryOpt::Out(end), TimeEntryOpt::In(saved)) => {
                 let mut start = end.clone();
                 start.dir = Direction::In;
                 start.memo = String::from("Missing clock in.");
