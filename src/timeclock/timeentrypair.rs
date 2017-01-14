@@ -21,15 +21,9 @@ impl TimeEntryOpt {
 
 impl From<Option<TimeEntry>> for TimeEntryOpt {
     fn from(opt: Option<TimeEntry>) -> Self {
-        let te = match opt {
-            Some(te) => te,
-            None => {
-                return TimeEntryOpt::Invalid;
-            }
-        };
-        match te.dir {
-            Direction::In => TimeEntryOpt::In(te),
-            Direction::Out => TimeEntryOpt::Out(te),
+        match opt {
+            Some(te) => te.into(),
+            None => TimeEntryOpt::Invalid,
         }
     }
 }
