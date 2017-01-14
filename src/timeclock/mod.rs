@@ -12,6 +12,7 @@ mod daterecorditer;
 use chrono::*;
 use csv;
 pub use self::daterecord::DateRecord;
+use self::daterecorditer::IntoDateRecords;
 pub use self::direction::Direction;
 pub use self::error::TimeClockError;
 pub use self::timeentry::TimeEntry;
@@ -35,8 +36,7 @@ pub fn read_timesheet<R: Read>(file: R)
 pub fn collect_date_records(records: Vec<TimeEntry>) -> Vec<DateRecord> {
     let mut date_duration_map = BTreeMap::new();
 
-    for tep in timeentry_pairs(records.into_iter()) {
-        let r = DateRecord::from(tep);
+    for r in timeentry_pairs(records.into_iter()).daterecords() {
 
         if !date_duration_map.contains_key(&r.date()) {
             date_duration_map.insert(r.date(), r);

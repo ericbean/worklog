@@ -3,6 +3,8 @@ use std::iter::Iterator;
 use std::mem;
 use timeclock::{TimeEntry, now};
 use timeclock::Direction;
+use timeclock::daterecorditer::DateRecordIter;
+use timeclock::daterecorditer::IntoDateRecords;
 
 /// Option-like enclosure for TimeEntrys
 #[derive(Debug,PartialEq)]
@@ -127,10 +129,18 @@ impl<I> Iterator for TimeEntryPairsIter<I>
     }
 }
 
+impl<I> IntoDateRecords for TimeEntryPairsIter<I>
+    where I: Iterator<Item = TimeEntry>
+{
+    fn daterecords(self) -> DateRecordIter<Self> {
+        DateRecordIter::new(self)
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use timeclock::daterecorditer::IntoDateRecords;
     use timeclock::direction::Direction;
     use timeclock::now;
     use timeclock::timeentry::TimeEntry;
@@ -238,4 +248,15 @@ mod tests {
         assert_eq!(y.len(), 0);
     }
 
+    #[test]
+    fn to_daterecords() {
+        let time = now();
+        let v = vec![TimeEntry::new(Direction::In, time, "Entry A"),
+                     TimeEntry::new(Direction::Out, time, "Entry B")];
+
+        let tepiter = timeentry_pairs(v.into_iter());
+        for dr in tepiter.daterecords() {
+            assert_eq!(dr.seconds(), 0.0);
+        }
+    }
 }

@@ -1,9 +1,16 @@
 use std::iter::Iterator;
+use std::marker::Sized;
 use timeclock::DateRecord;
 
 /// Iterator adapter to create DateRecords
 pub struct DateRecordIter<I> {
     v: I,
+}
+
+impl<I> DateRecordIter<I> {
+    pub fn new(v: I) -> Self {
+        DateRecordIter { v: v }
+    }
 }
 
 impl<I> Iterator for DateRecordIter<I>
@@ -18,6 +25,14 @@ impl<I> Iterator for DateRecordIter<I>
             None => None,
         }
     }
+}
+
+pub trait IntoDateRecords
+    where Self: Sized,
+          Self: Iterator,
+          Self::Item: Into<DateRecord>
+{
+    fn daterecords(self) -> DateRecordIter<Self>;
 }
 
 #[cfg(test)]
