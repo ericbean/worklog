@@ -40,7 +40,7 @@ impl DateRecord {
 
     /// Get the duration, expressed in seconds
     pub fn seconds(&self) -> f64 {
-        self.duration.clone()
+        self.duration
     }
 
 
@@ -58,7 +58,7 @@ impl DateRecord {
 
 
     pub fn date(&self) -> Date<FixedOffset> {
-        self.date.clone()
+        self.date
     }
 
 
