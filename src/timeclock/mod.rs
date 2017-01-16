@@ -11,14 +11,13 @@ mod daterecorditer;
 
 use chrono::*;
 use csv;
-pub use self::daterecord::DateRecord;
+pub use self::daterecord::{DateRecord, Combine};
 use self::daterecorditer::IntoDateRecords;
 pub use self::direction::Direction;
 pub use self::error::TimeClockError;
 pub use self::timeentry::TimeEntry;
 pub use self::timeentrypair::{TimeEntryPair, TimeEntryPairsIter,
                               timeentry_pairs};
-use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::SeekFrom;
 use std::io::prelude::*;
@@ -34,23 +33,20 @@ pub fn read_timesheet<R: Read>(file: R)
 
 /// Reduce pairs of `TimeEntrys` into `DateRecords`
 pub fn collect_date_records(records: Vec<TimeEntry>) -> Vec<DateRecord> {
-    let mut date_duration_map = BTreeMap::new();
-
-    // Clippy complains about this but it's going away eventually.
-    for r in timeentry_pairs(records.into_iter()).daterecords() {
-        if !date_duration_map.contains_key(&r.date()) {
-            date_duration_map.insert(r.date(), r);
-        } else {
-            let mut rec = date_duration_map.remove(&r.date()).unwrap();
-            rec.add_seconds(r.seconds());
-            rec.append_memo(r.memo());
-            date_duration_map.insert(rec.date(), rec);
+    let mut res: Vec<DateRecord> = Vec::new();
+    for rec in timeentry_pairs(records.into_iter()).daterecords() {
+        match res.pop() {
+            Some(mut r) => {
+                if r.combine(&rec) {
+                    res.push(r);
+                } else {
+                    res.push(rec);
+                }
+            }
+            None => res.push(rec),
         }
     }
-
-    date_duration_map.iter()
-        .map(|(_, r)| r.clone())
-        .collect::<Vec<DateRecord>>()
+    res
 }
 
 

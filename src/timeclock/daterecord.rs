@@ -43,7 +43,7 @@ impl DateRecord {
         }
     }
 
-
+    #[allow(dead_code)]
     /// Get the duration, expressed in seconds
     pub fn seconds(&self) -> f64 {
         self.duration
@@ -67,7 +67,8 @@ impl DateRecord {
         self.date
     }
 
-
+    #[allow(dead_code)]
+    // add seconds to the duration
     pub fn add_seconds(&mut self, secs: f64) {
         self.duration += secs;
     }
