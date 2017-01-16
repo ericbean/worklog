@@ -6,6 +6,12 @@ use timeclock::TimeEntry;
 use timeclock::TimeEntryPair;
 
 
+pub trait Combine<T = Self> {
+    type Output;
+    fn combine(&mut self, other: &T) -> bool;
+}
+
+
 #[derive(Clone,Debug)]
 pub struct DateRecord {
     date: Date<FixedOffset>,
@@ -85,6 +91,20 @@ impl DateRecord {
 }
 
 
+impl Combine for DateRecord {
+    type Output = Option<Self>;
+    fn combine(&mut self, other: &Self) -> bool {
+        if self.date == other.date {
+            self.duration += other.duration;
+            self.append_memo(other.memo());
+            true
+        } else {
+            false
+        }
+    }
+}
+
+
 impl fmt::Display for DateRecord {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let date = self.date.format("%F");
@@ -104,27 +124,29 @@ mod tests {
     use chrono::*;
     use super::*;
 
-    fn daterecord_helper() -> DateRecord {
-        let x = NaiveDate::parse_from_str("2017-01-07", "%F").unwrap();
+    const DURATION: f64 = 4321.098765;
+
+    fn daterecord_helper(date: &str) -> DateRecord {
+        let x = NaiveDate::parse_from_str(date, "%F").unwrap();
         let y = FixedOffset::west(6 * 3600).from_local_date(&x).unwrap();
-        DateRecord::from_parts(y, 4321.098765, "Test")
+        DateRecord::from_parts(y, DURATION, "Test")
     }
 
     #[test]
     fn duration_methods_test() {
-        let mut dr = daterecord_helper();
+        let mut dr = daterecord_helper("2017-01-07");
         // check math
-        assert!(dr.seconds() == 4321.098765);
-        assert!(dr.minutes() == 72.01831274999999);
-        assert!(dr.hours() == 1.2003052125);
+        assert!(dr.seconds() == DURATION);
+        assert!(dr.minutes() == DURATION / 60.0);
+        assert!(dr.hours() == DURATION / 3600.0);
         // check that addition works
         dr.add_seconds(1357.246);
-        assert!(dr.seconds() == 5678.344765);
+        assert!(dr.seconds() == DURATION + 1357.246);
     }
 
     #[test]
     fn memo_methods_test() {
-        let mut dr = daterecord_helper();
+        let mut dr = daterecord_helper("2017-01-07");
         assert!(dr.memo() == "Test");
         // append empty str
         dr.append_memo("");
@@ -135,8 +157,27 @@ mod tests {
     }
 
     #[test]
+    fn combine_test() {
+        let mut a = daterecord_helper("2017-01-07");
+        let b = daterecord_helper("2017-01-07");
+        let success = a.combine(&b);
+        assert!(success);
+        assert_eq!(a.date(), a.date());
+        assert_eq!(a.seconds(), DURATION * 2.0);
+        assert_eq!(a.memo(), "Test, Test");
+
+        // a and c have different dates
+        let c = daterecord_helper("2017-01-08");
+        let success = a.combine(&c);
+        assert!(!success);
+        assert_eq!(a.date(), a.date());
+        assert_eq!(a.seconds(), DURATION * 2.0);
+        assert_eq!(a.memo(), "Test, Test");
+    }
+
+    #[test]
     fn fmt_debug_test() {
-        let dr = daterecord_helper();
+        let dr = daterecord_helper("2017-01-07");
         let s = format!("{:?}", dr);
         println!("{:?}", dr);
         assert!(s ==
@@ -146,7 +187,7 @@ mod tests {
 
     #[test]
     fn fmt_display_test() {
-        let dr = daterecord_helper();
+        let dr = daterecord_helper("2017-01-07");
         let s = format!("{}", dr);
         assert!(s == "2017-01-07 1.20 Test")
     }
