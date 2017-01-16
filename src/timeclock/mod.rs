@@ -8,16 +8,17 @@ mod error;
 mod timeentry;
 mod timeentrypair;
 mod daterecorditer;
+mod traits;
 
 use chrono::*;
 use csv;
-pub use self::daterecord::{DateRecord, Combine};
-use self::daterecorditer::IntoDateRecords;
+pub use self::daterecord::DateRecord;
 pub use self::direction::Direction;
 pub use self::error::TimeClockError;
 pub use self::timeentry::TimeEntry;
 pub use self::timeentrypair::{TimeEntryPair, TimeEntryPairsIter,
                               timeentry_pairs};
+pub use self::traits::*;
 use std::fs::File;
 use std::io::SeekFrom;
 use std::io::prelude::*;

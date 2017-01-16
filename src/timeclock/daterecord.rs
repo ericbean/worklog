@@ -2,14 +2,9 @@
 
 use chrono::*;
 use std::fmt;
+use timeclock::Combine;
 use timeclock::TimeEntry;
 use timeclock::TimeEntryPair;
-
-
-pub trait Combine<T = Self> {
-    type Output;
-    fn combine(&mut self, other: &T) -> bool;
-}
 
 
 #[derive(Clone,Debug)]
@@ -93,7 +88,6 @@ impl DateRecord {
 
 
 impl Combine for DateRecord {
-    type Output = Option<Self>;
     fn combine(&mut self, other: &Self) -> bool {
         if self.date == other.date {
             self.duration += other.duration;
@@ -124,6 +118,7 @@ impl From<TimeEntryPair> for DateRecord {
 mod tests {
     use chrono::*;
     use super::*;
+    use timeclock::Combine;
 
     const DURATION: f64 = 4321.098765;
 

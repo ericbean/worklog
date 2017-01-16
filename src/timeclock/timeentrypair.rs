@@ -3,8 +3,8 @@ use std::iter::Iterator;
 use std::mem;
 use timeclock::{TimeEntry, now};
 use timeclock::Direction;
+use timeclock::IntoDateRecords;
 use timeclock::daterecorditer::DateRecordIter;
-use timeclock::daterecorditer::IntoDateRecords;
 
 /// Option-like enclosure for `TimeEntrys`
 #[derive(Debug,PartialEq)]
@@ -134,7 +134,7 @@ impl<I> IntoDateRecords for TimeEntryPairsIter<I>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use timeclock::daterecorditer::IntoDateRecords;
+    use timeclock::IntoDateRecords;
     use timeclock::direction::Direction;
     use timeclock::now;
     use timeclock::timeentry::TimeEntry;
