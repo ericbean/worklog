@@ -9,15 +9,16 @@ mod timeentry;
 mod timeentrypair;
 mod daterecorditer;
 mod traits;
+mod iterators;
 
 use chrono::*;
 use csv;
 pub use self::daterecord::DateRecord;
 pub use self::direction::Direction;
 pub use self::error::TimeClockError;
+pub use self::iterators::*;
 pub use self::timeentry::TimeEntry;
-pub use self::timeentrypair::{TimeEntryPair, TimeEntryPairsIter,
-                              timeentry_pairs};
+pub use self::timeentrypair::TimeEntryPair;
 pub use self::traits::*;
 use std::fs::File;
 use std::io::SeekFrom;

@@ -1,6 +1,6 @@
 use std::iter::Iterator;
 use timeclock::DateRecord;
-use timeclock::daterecorditer::DateRecordIter;
+use timeclock::DateRecordIter;
 
 pub trait Combine<T = Self> {
     fn combine(&mut self, other: &T) -> bool;
