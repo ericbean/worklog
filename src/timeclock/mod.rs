@@ -39,6 +39,7 @@ pub fn collect_date_records(records: Vec<TimeEntry>) -> Vec<DateRecord> {
                 if r.combine(&rec) {
                     res.push(r);
                 } else {
+                    res.push(r);
                     res.push(rec);
                 }
             }
@@ -74,6 +75,7 @@ pub fn now() -> DateTime<FixedOffset> {
 
 #[cfg(test)]
 mod tests {
+    use chrono::duration::Duration;
     use std::io::Cursor;
     use super::*;
 
@@ -154,13 +156,21 @@ mod tests {
     #[test]
     fn collect_date_records_test() {
         let time = now();
+        let day = Duration::days(1);
         let records = vec![TimeEntry::new(Direction::In, time, "In"),
-                           TimeEntry::new(Direction::Out, time, "Out")];
+                           TimeEntry::new(Direction::Out, time, "Out"),
+                           TimeEntry::new(Direction::In, time, "In"),
+                           TimeEntry::new(Direction::Out, time, "Out"),
+                           TimeEntry::new(Direction::In, time + day, "In"),
+                           TimeEntry::new(Direction::Out, time + day, "Out")];
 
         let res = collect_date_records(records);
-        assert_eq!(res.len(), 1);
+        assert_eq!(res.len(), 2);
         let dr = res.first().unwrap();
         assert_eq!(dr.date(), time.date());
+        assert_eq!(dr.hours(), 0.0);
+        let dr = res.last().unwrap();
+        assert_eq!(dr.date(), time.date() + day);
         assert_eq!(dr.hours(), 0.0);
     }
 
