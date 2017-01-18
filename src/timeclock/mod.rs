@@ -17,7 +17,6 @@ pub use self::error::TimeClockError;
 pub use self::iterators::*;
 pub use self::timeentry::{TimeEntry, TimeEntryPair};
 pub use self::traits::*;
-use std::fs::File;
 use std::io::SeekFrom;
 use std::io::prelude::*;
 
@@ -51,15 +50,11 @@ pub fn collect_date_records(records: Vec<TimeEntry>) -> Vec<DateRecord> {
 
 
 /// Marks the time.
-pub fn mark_time(d: Direction,
-                 time: DateTime<FixedOffset>,
-                 memo: String,
-                 mut file: File) {
-    let record = TimeEntry {
-        dir: d,
-        time: time,
-        memo: memo,
-    };
+pub fn mark_time<W: Write + Seek>(dir: Direction,
+                                  time: DateTime<FixedOffset>,
+                                  memo: String,
+                                  file: &mut W) {
+    let record = TimeEntry::new(dir, time, &memo);
     // seek in case we write without reading first
     let _ = file.seek(SeekFrom::End(0));
     let mut wtr = csv::Writer::from_writer(file);
@@ -75,7 +70,8 @@ pub fn now() -> DateTime<FixedOffset> {
 
 #[cfg(test)]
 mod tests {
-    use chrono::duration::Duration;
+    use chrono::*;
+    // use chrono::duration::Duration;
     use std::io::Cursor;
     use super::*;
 
@@ -186,5 +182,16 @@ mod tests {
         assert!(records.len() == 1);
         println!("\n{}", records[0].seconds());
         assert!(records[0].seconds() == 3600.0);
+    }
+
+    #[test]
+    fn mark_time_test() {
+        let mut buff: Cursor<Vec<u8>> = Cursor::new(Vec::new());
+        let time = DateTime::parse_from_rfc3339("2017-01-18T12:50:13-06:00")
+            .unwrap();
+        mark_time(Direction::In, time, "Test".to_owned(), &mut buff);
+        let v = buff.into_inner();
+        let s = String::from_utf8(v).unwrap();
+        assert_eq!(s, "In,2017-01-18T12:50:13-0600,Test\n");
     }
 }

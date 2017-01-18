@@ -109,7 +109,7 @@ fn main0() -> Result<i8, WorklogError> {
 
     let csv_path = try!(get_csv_path());
 
-    let csv_file = try!(OpenOptions::new()
+    let mut csv_file = try!(OpenOptions::new()
         .read(true)
         .write(true)
         .create(true)
@@ -141,7 +141,7 @@ fn main0() -> Result<i8, WorklogError> {
 
         let memo =
             matches.opt_str("m").or_else(|| Some("".to_owned())).unwrap();
-        timeclock::mark_time(dir, time, memo, csv_file);
+        timeclock::mark_time(dir, time, memo, &mut csv_file);
 
         println!("Clocked {:#} at {}", dir, time.format("%F %I:%M %P"));
 
