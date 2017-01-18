@@ -17,7 +17,6 @@ fn parse_time(timestr: &str) -> Result<DateTime<FixedOffset>, WorklogError> {
     Ok(cdate.and_time(res).unwrap())
 }
 
-
 /// Helper fn for `parse_multi_time_fmt`
 /// Parse a datetime from various formats.
 fn parse_datetime(timestr: &str)
@@ -48,17 +47,14 @@ pub fn parse_multi_time_fmt(timestr: &str)
     parse_time(timestr).or_else(|_| parse_datetime(timestr))
 }
 
-
 #[cfg(test)]
 mod tests {
-    // huge pita to test these better. Someday though... Maybe.
-
     use super::*;
     use super::parse_datetime;
     use super::parse_time;
 
     #[test]
-    fn parse_time_test() {
+    fn util_parse_time_test() {
         assert!(parse_time("10:31").is_ok());
         assert!(parse_time("10:31AM").is_ok());
         assert!(parse_time("10:31 PM").is_ok());
@@ -66,18 +62,16 @@ mod tests {
         assert!(parse_time("10:31:12.142134366").is_ok());
     }
 
-
     #[test]
-    fn parse_datetime_test() {
+    fn util_parse_datetime_test() {
         assert!(parse_datetime("2016-12-18 16:53:33.142134366").is_ok());
         assert!(parse_datetime("2016-12-18T16:53:33").is_ok());
         assert!(parse_datetime("2016-12-18T16:53").is_ok());
     }
 
-
     #[test]
-    fn parse_multi_time_fmt_test() {
-        // only testing "now" time
+    fn util_parse_multi_time_fmt_test() {
         assert!(parse_multi_time_fmt("now").is_ok());
+        assert!(parse_multi_time_fmt("dfggfh").is_err());
     }
 }
