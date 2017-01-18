@@ -27,7 +27,6 @@ pub struct TimeEntry {
 
 
 impl TimeEntry {
-    #[allow(dead_code)]
     pub fn new(dir: Direction,
                time: DateTime<FixedOffset>,
                memo: &str)
