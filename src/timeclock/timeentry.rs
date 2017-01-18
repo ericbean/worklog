@@ -3,20 +3,16 @@ use rustc_serialize::{Decodable, Decoder, Encodable, Encoder};
 use std::fmt;
 use timeclock::direction::Direction;
 
-
 static DATETIMEFMT: &'static str = "%Y-%m-%dT%H:%M:%S%z";
-
 
 fn fmt_datetime(time: DateTime<FixedOffset>) -> String {
     let dr = time.format(DATETIMEFMT);
     format!("{}", dr)
 }
 
-
 fn parse_datetime(s: &str) -> ParseResult<DateTime<FixedOffset>> {
     DateTime::parse_from_str(s, DATETIMEFMT)
 }
-
 
 #[derive(Clone,Debug,PartialEq)]
 pub struct TimeEntry {
@@ -24,7 +20,6 @@ pub struct TimeEntry {
     pub time: DateTime<FixedOffset>,
     pub memo: String,
 }
-
 
 impl TimeEntry {
     pub fn new(dir: Direction,
@@ -39,7 +34,6 @@ impl TimeEntry {
     }
 }
 
-
 impl Encodable for TimeEntry {
     fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
         s.emit_struct("TimeEntry", 3, |s| {
@@ -53,7 +47,6 @@ impl Encodable for TimeEntry {
     }
 }
 
-
 impl Decodable for TimeEntry {
     fn decode<D: Decoder>(d: &mut D) -> Result<TimeEntry, D::Error> {
         d.read_struct("TimeEntry", 0, |d| {
@@ -63,11 +56,10 @@ impl Decodable for TimeEntry {
                 time: {
                     let a_str: String = try!(d.read_struct_field("time", 0,
                             |d| d.read_str()));
-                    let es = format!("Can't parse {}", a_str);
                     let dt = parse_datetime(&a_str);
                     match dt {
                         Ok(d) => d,
-                        Err(_) => return Err(d.error(&es)),
+                        Err(e) => return Err(d.error(&format!("{}", e))),
                     }
                 },
                 memo: try!(d.read_struct_field("memo", 0, |d|
@@ -76,7 +68,6 @@ impl Decodable for TimeEntry {
         })
     }
 }
-
 
 impl fmt::Display for TimeEntry {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -107,53 +98,70 @@ impl TimeEntryPair {
 
 #[cfg(test)]
 mod tests {
+    use chrono::*;
     use csv;
     use std::io::Cursor;
     use super::*;
-    use timeclock::direction::Direction;
-    use timeclock::now;
-    use timeclock::timeentry::{fmt_datetime, parse_datetime};
+    use timeclock::Direction;
 
-    #[test]
-    fn timeentry_constructor_test() {
-        let time = now();
-        let te = TimeEntry::new(Direction::In, time, "Memo");
-        assert_eq!(te.dir, Direction::In);
-        assert_eq!(te.time, time);
-        assert_eq!(te.memo, "Memo");
+    fn time_helper() -> DateTime<FixedOffset> {
+        DateTime::parse_from_rfc3339("2017-01-05T14:04:16-06:00").unwrap()
     }
 
     #[test]
-    fn encode_timeentry_test() {
+    fn timeentry_encode_test() {
         let mut wtr = csv::Writer::from_memory();
-        let timenow = now();
-        let expected = format!("In,{},test memo\n", fmt_datetime(timenow));
-        let _ = wtr.encode(TimeEntry {
-            dir: Direction::In,
-            time: timenow,
-            memo: "test memo".to_owned(),
-        });
-        assert!(wtr.as_string() == expected);
+        let time = DateTime::parse_from_rfc3339("2017-01-05T14:04:16-06:00")
+            .unwrap();
+        let _ = wtr.encode(TimeEntry::new(Direction::In, time, "Test"));
+        assert_eq!(wtr.as_string(), "In,2017-01-05T14:04:16-0600,Test\n");
     }
 
     #[test]
-    fn decode_timeentry_test() {
-        let timestr = "2017-01-05T14:04:16-0600";
-        let expected_time = parse_datetime(timestr).unwrap();
-        let memo = "test memo";
-        let s = format!("In,{0:},{1:}\nOut,{0:},{1:}\n", timestr, memo);
-        let vs = s.as_bytes();
-        let buff = Cursor::new(vs);
+    fn timeentry_decode_test() {
+        let time = DateTime::parse_from_rfc3339("2017-01-05T14:04:16-06:00")
+            .unwrap();
+        let s = format!("In,2017-01-05T14:04:16-0600,Test\n");
+        let buff = Cursor::new(s.as_bytes());
         let mut rdr = csv::Reader::from_reader(buff).has_headers(false);
         let records =
             rdr.decode().collect::<csv::Result<Vec<TimeEntry>>>().unwrap();
 
-        assert!(records[0].dir == Direction::In);
-        assert!(records[1].dir == Direction::Out);
-        assert!(records[0].time == expected_time);
-        assert!(records[1].time == expected_time);
-        assert!(records[0].memo == memo);
-        assert!(records[1].memo == memo);
-        assert!(records.len() == 2);
+        assert_eq!(records[0].dir, Direction::In);
+        assert_eq!(records[0].time, time);
+        assert_eq!(records[0].memo, "Test");
+        assert_eq!(records.len(), 1);
+    }
+
+    #[test]
+    fn timeentry_decode_bad_date_test() {
+        let s = format!("In,sfggfh,Test\n");
+        let buff = Cursor::new(s.as_bytes());
+        let mut rdr = csv::Reader::from_reader(buff).has_headers(false);
+        let records = rdr.decode().collect::<csv::Result<Vec<TimeEntry>>>();
+
+        assert!(records.is_err());
+    }
+
+    #[test]
+    fn timeentry_print_test() {
+        let time = DateTime::parse_from_rfc3339("2017-01-05T14:04:16-06:00")
+            .unwrap();
+        let te = TimeEntry::new(Direction::In, time, "Test");
+        let display = format!("{}", te);
+        assert_eq!(display, "In  2017-01-05 02:04 pm Test");
+        let debug = format!("{:?}", te);
+        assert_eq!(debug,
+                   "TimeEntry { dir: In, time: 2017-01-05T14:04:16-06:00, memo: \"Test\" }");
+    }
+
+    #[test]
+    fn timeentrypair_test() {
+        let time = time_helper();
+        let te_a = TimeEntry::new(Direction::In, time, "Test");
+        let te_b = TimeEntry::new(Direction::Out, time, "Test");
+        let tep = TimeEntryPair::new(te_a.clone(), te_b.clone());
+        assert_eq!(tep.start(), &te_a);
+        assert_eq!(tep.end(), &te_b);
     }
 }
