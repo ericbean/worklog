@@ -84,8 +84,7 @@ mod tests {
                  In,2016-12-19T20:54:53-0600,\n\
                  In,2016-12-18T13:01:50-0600,\n\
                  Out,2016-12-19T20:54:57-0600,";
-        let vs = s.as_bytes();
-        let buff = Cursor::new(vs);
+        let buff = Cursor::new(s.as_bytes());
         let records = read_timesheet(buff).unwrap();
         for slc in records.chunks(2) {
             assert!(slc[0].dir == Direction::In);
@@ -99,7 +98,6 @@ mod tests {
 
 
     #[test]
-    #[should_panic(expected = "called `Result::unwrap()` on an `Err` value")]
     fn read_timesheet_haggis_test() {
         // test for sorting and general function
         let s = "Fair fa' your honest, sonsie face,\n\
@@ -108,10 +106,9 @@ mod tests {
                  Painch, tripe, or thairm:\n\
                  Weel are ye wordy o' a grace\n\
                  As lang's my arm.";
-        let vs = s.as_bytes();
-        let buff = Cursor::new(vs);
-        let records = read_timesheet(buff).unwrap();
-        assert!(records[0].dir == Direction::In);
+        let buff = Cursor::new(s.as_bytes());
+        let records = read_timesheet(buff);
+        assert!(records.is_err());
     }
 
 
@@ -122,8 +119,7 @@ mod tests {
                  Out,2016-12-20T20:50:57-0600,\n\
                  Out,2016-12-20T20:50:59-0600,\n\
                  In,2016-12-20T21:04:57-0600,";
-        let vs = s.as_bytes();
-        let buff = Cursor::new(vs);
+        let buff = Cursor::new(s.as_bytes());
         let entries = read_timesheet(buff).unwrap();
         let records = timeentry_pairs(entries.into_iter())
             .collect::<Vec<TimeEntryPair>>();
@@ -141,8 +137,7 @@ mod tests {
     fn pair_time_entries_double_in_test() {
         let s = "In,2016-12-20T21:01:57-0600,\n\
                  In,2016-12-20T21:04:57-0600,";
-        let vs = s.as_bytes();
-        let buff = Cursor::new(vs);
+        let buff = Cursor::new(s.as_bytes());
         let entries = read_timesheet(buff).unwrap();
         let records = timeentry_pairs(entries.into_iter())
             .collect::<Vec<TimeEntryPair>>();
@@ -174,8 +169,7 @@ mod tests {
         // test mismatched timezones
         let s = "In,2016-12-18T13:01:50-0500,\n\
                  Out,2016-12-18T13:01:50-0600,";
-        let vs = s.as_bytes();
-        let buff = Cursor::new(vs);
+        let buff = Cursor::new(s.as_bytes());
         let entries = read_timesheet(buff).unwrap();
         let records = collect_date_records(entries);
 
