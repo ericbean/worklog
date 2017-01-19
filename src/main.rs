@@ -93,7 +93,7 @@ fn get_csv_path() -> Result<PathBuf, WorklogError> {
 }
 
 
-fn main0() -> Result<i8, WorklogError> {
+fn main0() -> Result<(), WorklogError> {
     let args: Vec<String> = env::args().collect();
     let program = args[0].clone();
 
@@ -123,8 +123,7 @@ fn main0() -> Result<i8, WorklogError> {
 
         // Reject --in and --out if present at the same time
         if matches.opt_present("i") && matches.opt_present("o") {
-            println!("--in or --out, not both");
-            return Ok(1);
+            return Err(WorklogError::MutExclOpt);
         }
 
         let dir = if matches.opt_present("i") {
@@ -157,7 +156,7 @@ fn main0() -> Result<i8, WorklogError> {
         try!(print_short_summary(&csv_file, start_date));
     }
 
-    Ok(0)
+    Ok(())
 }
 
 
