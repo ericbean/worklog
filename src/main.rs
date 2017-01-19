@@ -102,7 +102,7 @@ fn main0() -> Result<i8, WorklogError> {
     opts.optflagopt("o", "out", "out time", "TIME");
     opts.optopt("m", "memo", "the memo", "MEMO");
     opts.optflag("s", "summary", "show the full summary");
-    opts.optflag("e", "entries", "show all entries");
+    opts.optflag("l", "log", "show the full log");
     opts.optflag("h", "help", "print this help menu");
 
     let matches = try!(opts.parse(&args[1..]));
@@ -148,7 +148,7 @@ fn main0() -> Result<i8, WorklogError> {
     } else if matches.opt_present("s") {
         try!(print_full_summary(&csv_file));
 
-    } else if matches.opt_present("e") {
+    } else if matches.opt_present("l") {
         try!(print_csv_entries(&csv_file));
 
     } else {
