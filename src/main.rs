@@ -17,7 +17,8 @@ use std::env;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::path::PathBuf;
-use timeclock::direction::Direction;
+use timeclock::Direction;
+use timeclock::now;
 
 
 #[cfg(target_family = "unix")]
@@ -40,8 +41,7 @@ fn print_csv_entries<R: Read>(file: R) -> Result<(), WorklogError> {
 
 fn print_full_summary<R: Read>(file: R) -> Result<(), WorklogError> {
     let csv_entries = try!(timeclock::read_timesheet(file));
-    let entries = timeclock::pair_time_entries(csv_entries);
-    let records = timeclock::collect_date_records(entries);
+    let records = timeclock::collect_date_records(csv_entries);
 
     let mut total_hours: f64 = 0.0;
     for rec in records {
@@ -58,8 +58,7 @@ fn print_short_summary<R: Read>(file: R,
                                 since: Date<FixedOffset>)
                                 -> Result<(), WorklogError> {
     let csv_entries = try!(timeclock::read_timesheet(file));
-    let entries = timeclock::pair_time_entries(csv_entries);
-    let records = timeclock::collect_date_records(entries);
+    let records = timeclock::collect_date_records(csv_entries);
 
     let mut total_hours: f64 = 0.0;
     for rec in records {
@@ -90,11 +89,11 @@ fn get_csv_path() -> Result<PathBuf, WorklogError> {
     };
 
     data_path.push(CSV_FILE_NAME);
-    return Ok(data_path);
+    Ok(data_path)
 }
 
 
-fn main0() -> Result<i8, WorklogError> {
+fn main0() -> Result<(), WorklogError> {
     let args: Vec<String> = env::args().collect();
     let program = args[0].clone();
 
@@ -103,14 +102,14 @@ fn main0() -> Result<i8, WorklogError> {
     opts.optflagopt("o", "out", "out time", "TIME");
     opts.optopt("m", "memo", "the memo", "MEMO");
     opts.optflag("s", "summary", "show the full summary");
-    opts.optflag("e", "entries", "show all entries");
+    opts.optflag("l", "log", "show the full log");
     opts.optflag("h", "help", "print this help menu");
 
     let matches = try!(opts.parse(&args[1..]));
 
     let csv_path = try!(get_csv_path());
 
-    let csv_file = try!(OpenOptions::new()
+    let mut csv_file = try!(OpenOptions::new()
         .read(true)
         .write(true)
         .create(true)
@@ -124,45 +123,48 @@ fn main0() -> Result<i8, WorklogError> {
 
         // Reject --in and --out if present at the same time
         if matches.opt_present("i") && matches.opt_present("o") {
-            println!("--in or --out, not both");
-            return Ok(1);
+            return Err(WorklogError::MutExclOpt);
         }
 
-        let dir = match matches.opt_present("i") {
-            true => Direction::In,
-            false => Direction::Out,
+        let dir = if matches.opt_present("i") {
+            Direction::In
+        } else {
+            Direction::Out
         };
 
         let time = matches.opt_str("i")
             .or(matches.opt_str("o"))
-            .or(Some("now".to_owned()))
+            .or_else(|| Some("now".to_owned()))
             .unwrap();
         let time = try!(util::parse_multi_time_fmt(&time));
 
-        let memo = matches.opt_str("m").or(Some("".to_owned())).unwrap();
-        timeclock::mark_time(dir, time, memo, csv_file);
+        let memo =
+            matches.opt_str("m").or_else(|| Some("".to_owned())).unwrap();
+        timeclock::mark_time(dir, time, memo, &mut csv_file);
 
         println!("Clocked {:#} at {}", dir, time.format("%F %I:%M %P"));
 
     } else if matches.opt_present("s") {
         try!(print_full_summary(&csv_file));
 
-    } else if matches.opt_present("e") {
+    } else if matches.opt_present("l") {
         try!(print_csv_entries(&csv_file));
 
     } else {
         let days_back = (-WEEKSTART + 7) % 7;
-        let start_date = util::now().date() - Duration::days(days_back);
+        let start_date = now().date() - Duration::days(days_back);
         try!(print_short_summary(&csv_file, start_date));
     }
 
-    Ok(0)
+    Ok(())
 }
 
 
 fn main() {
     match main0() {
         Ok(_) => {}
-        Err(err) => println!("Whoops! {}", err),
+        Err(err) => {
+            let _ = writeln!(&mut std::io::stderr(), "Error: {}", err);
+        }
     };
 }

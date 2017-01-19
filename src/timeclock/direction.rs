@@ -10,16 +10,6 @@ pub enum Direction {
 }
 
 
-impl Direction {
-    pub fn reverse(&self) -> Direction {
-        match self {
-            &Direction::In => Direction::Out,
-            &Direction::Out => Direction::In,
-        }
-    }
-}
-
-
 impl Encodable for Direction {
     fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
         s.emit_enum("Direction", |s| {
@@ -40,9 +30,9 @@ impl Decodable for Direction {
         };
 
         match s.to_lowercase().trim().as_ref() {
-            "in" => return Ok(Direction::In),
-            "out" => return Ok(Direction::Out),
-            &_ => return Err(d.error("Field must be \"In\" or \"Out\"")),
+            "in" => Ok(Direction::In),
+            "out" => Ok(Direction::Out),
+            &_ => Err(d.error("Field must be \"In\" or \"Out\"")),
         }
     }
 }
@@ -56,7 +46,7 @@ impl fmt::Display for Direction {
             (Direction::In, true) => ("in", 2),
             (Direction::Out, true) => ("out", 3),
         };
-        let width = f.width().or(Some(l)).unwrap();
+        let width = f.width().or_else(|| Some(l)).unwrap();
         f.write_fmt(format_args!("{0:1$}", s, width))
     }
 }

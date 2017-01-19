@@ -4,7 +4,7 @@ use std::env;
 use std::error::Error;
 use std::fmt;
 use std::io;
-use timeclock::error::TimeClockError;
+use timeclock::TimeClockError;
 
 #[derive(Debug)]
 pub enum WorklogError {
@@ -13,8 +13,8 @@ pub enum WorklogError {
     Opts(getopts::Fail),
     CronoParse(chrono::ParseError),
     TimeClock(TimeClockError),
+    MutExclOpt,
 }
-
 
 impl From<env::VarError> for WorklogError {
     fn from(err: env::VarError) -> WorklogError {
@@ -59,17 +59,19 @@ impl Error for WorklogError {
             WorklogError::Opts(ref err) => err.description(),
             WorklogError::CronoParse(ref err) => err.description(),
             WorklogError::TimeClock(ref err) => err.description(),
+            WorklogError::MutExclOpt => "--in or --out, not both",
         }
     }
 
     fn cause(&self) -> Option<&Error> {
-        Some(match *self {
-            WorklogError::Env(ref err) => err as &Error,
-            WorklogError::Io(ref err) => err as &Error,
-            WorklogError::Opts(ref err) => err as &Error,
-            WorklogError::CronoParse(ref err) => err as &Error,
-            WorklogError::TimeClock(ref err) => err as &Error,
-        })
+        match *self {
+            WorklogError::Env(ref err) => Some(err as &Error),
+            WorklogError::Io(ref err) => Some(err as &Error),
+            WorklogError::Opts(ref err) => Some(err as &Error),
+            WorklogError::CronoParse(ref err) => Some(err as &Error),
+            WorklogError::TimeClock(ref err) => Some(err as &Error),
+            WorklogError::MutExclOpt => None,
+        }
     }
 }
 
@@ -82,6 +84,7 @@ impl fmt::Display for WorklogError {
             WorklogError::Opts(ref err) => fmt::Display::fmt(err, f),
             WorklogError::CronoParse(ref err) => fmt::Display::fmt(err, f),
             WorklogError::TimeClock(ref err) => fmt::Display::fmt(err, f),
+            WorklogError::MutExclOpt => write!(f, "{}", self.description()),
         }
     }
 }
