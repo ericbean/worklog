@@ -164,6 +164,8 @@ fn main0() -> Result<i8, WorklogError> {
 fn main() {
     match main0() {
         Ok(_) => {}
-        Err(err) => println!("Whoops! {}", err),
+        Err(err) => {
+            let _ = writeln!(&mut std::io::stderr(), "Error: {}", err);
+        }
     };
 }
