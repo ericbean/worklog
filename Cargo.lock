@@ -1,6 +1,6 @@
 [root]
 name = "worklog"
-version = "0.1.1"
+version = "0.1.2-alpha"
 dependencies = [
  "chrono 0.2.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "csv 0.14.7 (registry+https://github.com/rust-lang/crates.io-index)",
