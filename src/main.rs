@@ -3,7 +3,7 @@
 
 extern crate chrono;
 extern crate csv;
-extern crate getopts;
+extern crate clap;
 extern crate rustc_serialize;
 
 mod error;
@@ -11,8 +11,8 @@ mod timeclock;
 mod util;
 
 use chrono::*;
+use clap::{Arg, ArgGroup, App};
 use error::WorklogError;
-use getopts::Options;
 use std::env;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -72,13 +72,6 @@ fn print_short_summary<R: Read>(file: R,
     Ok(())
 }
 
-
-fn print_usage(program: &str, opts: Options) {
-    let brief = format!("Usage: {} [options]", program);
-    print!("{}", opts.usage(&brief));
-}
-
-
 /// Get the path for the csv data file
 fn get_csv_path() -> Result<PathBuf, WorklogError> {
     let mut data_path = match env::home_dir() {
@@ -94,18 +87,26 @@ fn get_csv_path() -> Result<PathBuf, WorklogError> {
 
 
 fn main0() -> Result<(), WorklogError> {
-    let args: Vec<String> = env::args().collect();
-    let program = args[0].clone();
-
-    let mut opts = Options::new();
-    opts.optflagopt("i", "in", "in time", "TIME");
-    opts.optflagopt("o", "out", "out time", "TIME");
-    opts.optopt("m", "memo", "the memo", "MEMO");
-    opts.optflag("s", "summary", "show the full summary");
-    opts.optflag("l", "log", "show the full log");
-    opts.optflag("h", "help", "print this help menu");
-
-    let matches = try!(opts.parse(&args[1..]));
+    // Using std env macro rather than depending on clap's. No difference
+    // as far as I can tell.
+    let matches = App::new(env!("CARGO_PKG_NAME"))
+        .version(env!("CARGO_PKG_VERSION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .about(env!("CARGO_PKG_DESCRIPTION"))
+        .arg(Arg::from_usage("[in] -i, --in 'Record an In entry'"))
+        .arg(Arg::from_usage("[out] -o, --out 'Record an Out entry'"))
+        .arg(Arg::from_usage("[time] -t, --time <TIME> 'time'")
+            .default_value("now")
+            .requires("inout"))
+        .arg(Arg::from_usage("[memo] -m, --memo <MEMO> 'Memo for the entry'")
+            .default_value("")
+            .requires("inout"))
+        .arg(Arg::from_usage("[summary] -s, --summary 'Print a summary'")
+            .conflicts_with("inout"))
+        .arg(Arg::from_usage("[log] -l, --log 'Print the full log'")
+            .conflicts_with("inout"))
+        .group(ArgGroup::with_name("inout").args(&["in", "out"]))
+        .get_matches();
 
     let csv_path = try!(get_csv_path());
 
@@ -115,39 +116,25 @@ fn main0() -> Result<(), WorklogError> {
         .create(true)
         .open(csv_path));
 
-    if matches.opt_present("h") {
-        print_usage(&program, opts);
-
-    } else if matches.opts_present(&["i".to_owned(), "o".to_owned()]) {
-        // The ridiculous array above isn't my fault.
-
-        // Reject --in and --out if present at the same time
-        if matches.opt_present("i") && matches.opt_present("o") {
-            return Err(WorklogError::MutExclOpt);
-        }
-
-        let dir = if matches.opt_present("i") {
+    if matches.is_present("in") || matches.is_present("out") {
+        let dir = if matches.is_present("in") {
             Direction::In
         } else {
             Direction::Out
         };
 
-        let time = matches.opt_str("i")
-            .or(matches.opt_str("o"))
-            .or_else(|| Some("now".to_owned()))
-            .unwrap();
+        let time = matches.value_of("time").unwrap();
         let time = try!(util::parse_multi_time_fmt(&time));
 
-        let memo =
-            matches.opt_str("m").or_else(|| Some("".to_owned())).unwrap();
+        let memo = matches.value_of("memo").unwrap().to_owned();
         timeclock::mark_time(dir, time, memo, &mut csv_file);
 
         println!("Clocked {:#} at {}", dir, time.format("%F %I:%M %P"));
 
-    } else if matches.opt_present("s") {
+    } else if matches.is_present("summary") {
         try!(print_full_summary(&csv_file));
 
-    } else if matches.opt_present("l") {
+    } else if matches.is_present("log") {
         try!(print_csv_entries(&csv_file));
 
     } else {
