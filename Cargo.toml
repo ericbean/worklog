@@ -6,6 +6,6 @@ publish = false
 
 [dependencies]
 clap = "~2.20.0"
-chrono = "0.2"
+chrono = "0.3.0"
 csv = "0.14"
 rustc-serialize = "0.3"
