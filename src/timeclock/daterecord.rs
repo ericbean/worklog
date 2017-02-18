@@ -19,7 +19,9 @@ impl DateRecord {
     pub fn from_time_entries(start: &TimeEntry, end: &TimeEntry) -> DateRecord {
         let mut dr = DateRecord {
             date: start.time.date(),
-            duration: (end.time - start.time).num_seconds() as f64,
+            duration: end.time
+                .signed_duration_since(start.time)
+                .num_seconds() as f64,
             memo: String::new(),
         };
         dr.append_memo(&start.memo);

@@ -1,5 +1,4 @@
 use chrono;
-use getopts;
 use std::env;
 use std::error::Error;
 use std::fmt;
@@ -10,10 +9,8 @@ use timeclock::TimeClockError;
 pub enum WorklogError {
     Env(env::VarError),
     Io(io::Error),
-    Opts(getopts::Fail),
     CronoParse(chrono::ParseError),
     TimeClock(TimeClockError),
-    MutExclOpt,
 }
 
 impl From<env::VarError> for WorklogError {
@@ -26,13 +23,6 @@ impl From<env::VarError> for WorklogError {
 impl From<io::Error> for WorklogError {
     fn from(err: io::Error) -> WorklogError {
         WorklogError::Io(err)
-    }
-}
-
-
-impl From<getopts::Fail> for WorklogError {
-    fn from(err: getopts::Fail) -> WorklogError {
-        WorklogError::Opts(err)
     }
 }
 
@@ -56,10 +46,8 @@ impl Error for WorklogError {
         match *self {
             WorklogError::Env(ref err) => err.description(),
             WorklogError::Io(ref err) => err.description(),
-            WorklogError::Opts(ref err) => err.description(),
             WorklogError::CronoParse(ref err) => err.description(),
             WorklogError::TimeClock(ref err) => err.description(),
-            WorklogError::MutExclOpt => "--in or --out, not both",
         }
     }
 
@@ -67,10 +55,8 @@ impl Error for WorklogError {
         match *self {
             WorklogError::Env(ref err) => Some(err as &Error),
             WorklogError::Io(ref err) => Some(err as &Error),
-            WorklogError::Opts(ref err) => Some(err as &Error),
             WorklogError::CronoParse(ref err) => Some(err as &Error),
             WorklogError::TimeClock(ref err) => Some(err as &Error),
-            WorklogError::MutExclOpt => None,
         }
     }
 }
@@ -81,10 +67,8 @@ impl fmt::Display for WorklogError {
         match *self {
             WorklogError::Env(ref err) => fmt::Display::fmt(err, f),
             WorklogError::Io(ref err) => fmt::Display::fmt(err, f),
-            WorklogError::Opts(ref err) => fmt::Display::fmt(err, f),
             WorklogError::CronoParse(ref err) => fmt::Display::fmt(err, f),
             WorklogError::TimeClock(ref err) => fmt::Display::fmt(err, f),
-            WorklogError::MutExclOpt => write!(f, "{}", self.description()),
         }
     }
 }
