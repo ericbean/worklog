@@ -39,14 +39,17 @@ fn print_csv_entries<R: Read>(file: R) -> Result<(), WorklogError> {
 }
 
 
-fn print_full_summary<R: Read>(file: R) -> Result<(), WorklogError> {
+fn print_full_summary<R: Read>(file: R,
+                               rounding: util::Rounding)
+                               -> Result<(), WorklogError> {
     let csv_entries = try!(timeclock::read_timesheet(file));
     let records = timeclock::collect_date_records(csv_entries);
 
     let mut total_hours: f64 = 0.0;
     for rec in records {
-        total_hours += rec.hours();
-        println!("{}", rec);
+        let hours = util::round(rec.seconds(), rounding) / 3600.0;
+        total_hours += hours;
+        println!("{} {:.2} {}", rec.date().format("%F"), hours, rec.memo());
     }
 
     println!("Total Hours: {:.2}", total_hours);
@@ -55,7 +58,8 @@ fn print_full_summary<R: Read>(file: R) -> Result<(), WorklogError> {
 
 
 fn print_short_summary<R: Read>(file: R,
-                                since: Date<FixedOffset>)
+                                since: Date<FixedOffset>,
+                                rounding: util::Rounding)
                                 -> Result<(), WorklogError> {
     let csv_entries = try!(timeclock::read_timesheet(file));
     let records = timeclock::collect_date_records(csv_entries);
@@ -63,8 +67,9 @@ fn print_short_summary<R: Read>(file: R,
     let mut total_hours: f64 = 0.0;
     for rec in records {
         if rec.date() >= since {
-            total_hours += rec.hours();
-            println!("{}", rec);
+            let hours = util::round(rec.seconds(), rounding) / 3600.0;
+            total_hours += hours;
+            println!("{} {:.2} {}", rec.date().format("%F"), hours, rec.memo());
         }
     }
 
@@ -105,6 +110,8 @@ fn main0() -> Result<(), WorklogError> {
             .conflicts_with("inout"))
         .arg(Arg::from_usage("[log] -l, --log 'Print the full log'")
             .conflicts_with("inout"))
+        .arg(Arg::from_usage("[round] -r, --round 'Round totals up to the next quarter hour'")
+            .conflicts_with("inout"))
         .group(ArgGroup::with_name("inout").args(&["in", "out"]))
         .get_matches();
 
@@ -115,6 +122,15 @@ fn main0() -> Result<(), WorklogError> {
         .write(true)
         .create(true)
         .open(csv_path));
+
+    let rounding = {
+        if matches.is_present("round") {
+            // round up in 15min intervals
+            util::Rounding::Up(900.0)
+        } else {
+            util::Rounding::None
+        }
+    };
 
     if matches.is_present("in") || matches.is_present("out") {
         let dir = if matches.is_present("in") {
@@ -132,7 +148,7 @@ fn main0() -> Result<(), WorklogError> {
         println!("Clocked {:#} at {}", dir, time.format("%F %I:%M %P"));
 
     } else if matches.is_present("summary") {
-        try!(print_full_summary(&csv_file));
+        try!(print_full_summary(&csv_file, rounding));
 
     } else if matches.is_present("log") {
         try!(print_csv_entries(&csv_file));
@@ -140,7 +156,7 @@ fn main0() -> Result<(), WorklogError> {
     } else {
         let days_back = (-WEEKSTART + 7) % 7;
         let start_date = now().date() - Duration::days(days_back);
-        try!(print_short_summary(&csv_file, start_date));
+        try!(print_short_summary(&csv_file, start_date, rounding));
     }
 
     Ok(())
