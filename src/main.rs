@@ -111,6 +111,7 @@ fn main0() -> Result<(), WorklogError> {
             .conflicts_with("inout"))
         .arg(Arg::from_usage("[round] -r, --round 'Round totals up to the next quarter hour'")
             .conflicts_with("inout"))
+        .arg(Arg::from_usage("[range] -R, --range <TIME> <TIME> 'range'"))
         .group(ArgGroup::with_name("inout").args(&["in", "out"]))
         .get_matches();
 
@@ -151,6 +152,15 @@ fn main0() -> Result<(), WorklogError> {
 
     } else if matches.is_present("log") {
         try!(print_csv_entries(&csv_file));
+
+    } else if matches.is_present("range") {
+        let range = matches.values_of("range").unwrap();//.collect();
+        let range: Vec<DateTime<FixedOffset>> =
+            try!(range.map(util::parse_multi_time_fmt).collect());
+        try!(print_short_summary(&csv_file,
+                                 range[0].date(),
+                                 range[1].date(),
+                                 rounding));
 
     } else {
         let today = now().date();
