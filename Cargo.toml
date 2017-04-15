@@ -3,9 +3,13 @@ name = "worklog"
 version = "0.1.4-alpha"
 authors = ["Eric Beanland <eric.beanland@gmail.com>"]
 publish = false
+build = "build.rs"
 
 [dependencies]
 clap = "~2.22.1"
 chrono = "0.3.0"
 csv = "0.14"
 rustc-serialize = "0.3"
+
+[build-dependencies]
+peg = { version = "0.5" }

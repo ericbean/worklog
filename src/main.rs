@@ -1,6 +1,5 @@
 // Worklog is for recording your hours.
 //
-
 extern crate chrono;
 extern crate csv;
 extern crate clap;
@@ -25,6 +24,9 @@ use timeclock::now;
 static CSV_FILE_NAME: &'static str = ".worklog.csv";
 #[cfg(target_family = "windows")]
 static CSV_FILE_NAME: &'static str = "worklog.csv";
+
+// default rounding mode
+static ROUNDING_DEFAULT: &'static str = "+15m";
 
 // TODO This belongs in a config file somewhere
 const WEEKSTART: i64 = Weekday::Sat as i64;
@@ -110,7 +112,7 @@ fn main0() -> Result<(), WorklogError> {
         .arg(Arg::from_usage("[log] -l, --log 'Print the full log'")
             .conflicts_with("summary")
             .conflicts_with("inout"))
-        .arg(Arg::from_usage("[round] -r, --round 'Round totals up to the next quarter hour'")
+        .arg(Arg::from_usage("[round] -r, --round <ROUNDING> 'Round totals up, down, half'")
             .conflicts_with("log")
             .conflicts_with("inout"))
         .arg(Arg::from_usage("[range] -R, --range <TIME> <TIME> 'range'")
@@ -129,9 +131,8 @@ fn main0() -> Result<(), WorklogError> {
         .open(csv_path));
 
     let rounding = {
-        if matches.is_present("round") {
-            // round up in 15min intervals
-            util::Rounding::Up(900.0)
+        if matches.occurrences_of("round") > 0 {
+            try!(util::parse_rounding(matches.value_of("round").unwrap()))
         } else {
             util::Rounding::None
         }

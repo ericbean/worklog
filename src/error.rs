@@ -4,6 +4,7 @@ use std::error::Error;
 use std::fmt;
 use std::io;
 use timeclock::TimeClockError;
+use util::RoundingParseError;
 
 #[derive(Debug)]
 pub enum WorklogError {
@@ -11,6 +12,13 @@ pub enum WorklogError {
     Io(io::Error),
     CronoParse(chrono::ParseError),
     TimeClock(TimeClockError),
+    RoundingParser(RoundingParseError),
+}
+
+impl From<RoundingParseError> for WorklogError {
+    fn from(err: RoundingParseError) -> WorklogError {
+        WorklogError::RoundingParser(err)
+    }
 }
 
 impl From<env::VarError> for WorklogError {
@@ -48,6 +56,7 @@ impl Error for WorklogError {
             WorklogError::Io(ref err) => err.description(),
             WorklogError::CronoParse(ref err) => err.description(),
             WorklogError::TimeClock(ref err) => err.description(),
+            WorklogError::RoundingParser(ref err) => err.description(),
         }
     }
 
@@ -57,6 +66,7 @@ impl Error for WorklogError {
             WorklogError::Io(ref err) => Some(err as &Error),
             WorklogError::CronoParse(ref err) => Some(err as &Error),
             WorklogError::TimeClock(ref err) => Some(err as &Error),
+            WorklogError::RoundingParser(ref err) => Some(err as &Error),
         }
     }
 }
@@ -69,6 +79,7 @@ impl fmt::Display for WorklogError {
             WorklogError::Io(ref err) => fmt::Display::fmt(err, f),
             WorklogError::CronoParse(ref err) => fmt::Display::fmt(err, f),
             WorklogError::TimeClock(ref err) => fmt::Display::fmt(err, f),
+            WorklogError::RoundingParser(ref err) => fmt::Display::fmt(err, f),
         }
     }
 }
