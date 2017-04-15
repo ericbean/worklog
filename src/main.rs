@@ -58,7 +58,8 @@ fn print_full_summary<R: Read>(file: R,
 
 
 fn print_short_summary<R: Read>(file: R,
-                                since: Date<FixedOffset>,
+                                start_date: Date<FixedOffset>,
+                                end_date: Date<FixedOffset>,
                                 rounding: util::Rounding)
                                 -> Result<(), WorklogError> {
     let csv_entries = try!(timeclock::read_timesheet(file));
@@ -66,7 +67,7 @@ fn print_short_summary<R: Read>(file: R,
 
     let mut total_hours: f64 = 0.0;
     for rec in records {
-        if rec.date() >= since {
+        if start_date <= rec.date() && rec.date() <= end_date {
             let hours = util::round(rec.seconds(), rounding) / 3600.0;
             total_hours += hours;
             println!("{} {:.2} {}", rec.date().format("%F"), hours, rec.memo());
@@ -156,7 +157,7 @@ fn main0() -> Result<(), WorklogError> {
         let weekday = today.weekday() as i64;
         let days_back = (7 - WEEKSTART + weekday) % 7;
         let start_date = today - Duration::days(days_back);
-        try!(print_short_summary(&csv_file, start_date, rounding));
+        try!(print_short_summary(&csv_file, start_date, today, rounding));
     }
 
     Ok(())
