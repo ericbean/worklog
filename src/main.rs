@@ -108,10 +108,15 @@ fn main0() -> Result<(), WorklogError> {
         .arg(Arg::from_usage("[summary] -s, --summary 'Print a summary'")
             .conflicts_with("inout"))
         .arg(Arg::from_usage("[log] -l, --log 'Print the full log'")
+            .conflicts_with("summary")
             .conflicts_with("inout"))
         .arg(Arg::from_usage("[round] -r, --round 'Round totals up to the next quarter hour'")
+            .conflicts_with("log")
             .conflicts_with("inout"))
-        .arg(Arg::from_usage("[range] -R, --range <TIME> <TIME> 'range'"))
+        .arg(Arg::from_usage("[range] -R, --range <TIME> <TIME> 'range'")
+            .conflicts_with("summary")
+            .conflicts_with("log")
+            .conflicts_with("inout"))
         .group(ArgGroup::with_name("inout").args(&["in", "out"]))
         .get_matches();
 
