@@ -101,11 +101,11 @@ fn main0() -> Result<(), WorklogError> {
         .arg(Arg::from_usage("[in] -i, --in 'Record an In entry'"))
         .arg(Arg::from_usage("[out] -o, --out 'Record an Out entry'"))
         .arg(Arg::from_usage("[time] -t, --time <TIME> 'time'")
-            // Using default + required triggers needing the other option.
-            // removing the requires() for now as work around
-            .default_value("now"))
+            .default_value("now")
+            .requires("inout"))
         .arg(Arg::from_usage("[memo] -m, --memo <MEMO> 'Memo for the entry'")
-            .default_value(""))
+            .default_value("")
+            .requires("inout"))
         .arg(Arg::from_usage("[summary] -s, --summary 'Print a summary'")
             .conflicts_with("inout"))
         .arg(Arg::from_usage("[log] -l, --log 'Print the full log'")
