@@ -101,10 +101,8 @@ fn main0() -> Result<(), WorklogError> {
         .arg(Arg::from_usage("[in] -i, --in 'Record an In entry'"))
         .arg(Arg::from_usage("[out] -o, --out 'Record an Out entry'"))
         .arg(Arg::from_usage("[time] -t, --time <TIME> 'time'")
-            .default_value("now")
             .requires("inout"))
         .arg(Arg::from_usage("[memo] -m, --memo <MEMO> 'Memo for the entry'")
-            .default_value("")
             .requires("inout"))
         .arg(Arg::from_usage("[summary] -s, --summary 'Print a summary'")
             .conflicts_with("inout"))
@@ -139,10 +137,10 @@ fn main0() -> Result<(), WorklogError> {
             Direction::Out
         };
 
-        let time = matches.value_of("time").unwrap();
+        let time = matches.value_of("time").unwrap_or("now");
         let time = try!(util::parse_multi_time_fmt(&time));
 
-        let memo = matches.value_of("memo").unwrap().to_owned();
+        let memo = matches.value_of("memo").unwrap_or("").to_owned();
         timeclock::mark_time(dir, time, memo, &mut csv_file);
 
         println!("Clocked {:#} at {}", dir, time.format("%F %I:%M %P"));
