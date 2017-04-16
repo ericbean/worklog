@@ -3,6 +3,9 @@ use super::Rounding;
 number -> i32
 	= n:$([0-9]+) { n.parse().unwrap() }
 
+days -> i32
+    = "D"i { 86400 }
+
 hours -> i32
     = "H"i { 3600 }
 
@@ -13,7 +16,7 @@ seconds -> i32
     = "S"i { 1 }
 
 units -> i32
-    = hours / minutes / seconds
+    = days / hours / minutes / seconds
 
 up -> Rounding
     = ("+" / "U"i)? i:number j:units { Rounding::Up(i as f32 * j as f32) }

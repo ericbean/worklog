@@ -158,6 +158,7 @@ mod tests {
         assert_eq!(parse_rounding("+30S").unwrap(), Rounding::Up(30.0));
         assert_eq!(parse_rounding("D30s").unwrap(), Rounding::Down(30.0));
         assert_eq!(parse_rounding("h30s").unwrap(), Rounding::Half(30.0));
+        assert_eq!(parse_rounding("H1d").unwrap(), Rounding::Half(86400.0));
     }
 
     #[test]
