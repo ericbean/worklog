@@ -145,15 +145,15 @@ mod tests {
         assert_eq!(parse_rounding("+15m").unwrap(), Rounding::Up(900.0));
         assert_eq!(parse_rounding("U15m").unwrap(), Rounding::Up(900.0));
         assert_eq!(parse_rounding("u15m").unwrap(), Rounding::Up(900.0));
-        assert_eq!(parse_rounding("15m").unwrap(), Rounding::Up(900.0));
+        assert_eq!(parse_rounding("7.5m").unwrap(), Rounding::Up(450.0));
 
         assert_eq!(parse_rounding("-30m").unwrap(), Rounding::Down(1800.0));
         assert_eq!(parse_rounding("D30m").unwrap(), Rounding::Down(1800.0));
-        assert_eq!(parse_rounding("d30m").unwrap(), Rounding::Down(1800.0));
+        assert_eq!(parse_rounding("d7.5m").unwrap(), Rounding::Down(450.0));
 
         assert_eq!(parse_rounding("=1h").unwrap(), Rounding::Half(3600.0));
         assert_eq!(parse_rounding("H1h").unwrap(), Rounding::Half(3600.0));
-        assert_eq!(parse_rounding("h1h").unwrap(), Rounding::Half(3600.0));
+        assert_eq!(parse_rounding("h7.5m").unwrap(), Rounding::Half(450.0));
 
         assert_eq!(parse_rounding("+30S").unwrap(), Rounding::Up(30.0));
         assert_eq!(parse_rounding("D30s").unwrap(), Rounding::Down(30.0));
