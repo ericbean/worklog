@@ -6,6 +6,9 @@ number -> i32
 decimal -> f32
     = n:$([0-9.]+) { n.parse().unwrap() }
 
+signed_decimal -> f32
+    = n:$(("+" / "-")? [0-9.]+) { n.parse().unwrap() }
+
 days -> i32
     = "D"i { 86400 }
 
@@ -32,3 +35,27 @@ half -> Rounding
 
 pub rounding -> Rounding
     = up / down / half
+
+
+//date & time offsets
+
+offset_units -> f32
+    = n:signed_decimal m:units { n * m as f32 }
+
+offset_hh -> i32
+    = n:$(("+" / "-")? [0-9]*<1,2>) { n.parse().unwrap() }
+
+offset_mm -> i32
+    = n:$([0-9]*<2>) { n.parse().unwrap() }
+
+offset_hhmm -> f32
+    = h:offset_hh ":" m:offset_mm {
+        if h.is_negative() {
+            ((h * 3600) + (-m * 60)) as f32
+        } else {
+            ((h * 3600) + (m * 60)) as f32
+        }
+}
+
+pub offset -> f32
+    = offset_units / offset_hhmm

@@ -1,11 +1,6 @@
-mod roundingparser {
-    include!(concat!(env!("OUT_DIR"), "/grammar.rs"));
-}
-
 use chrono::*;
 use error::WorklogError;
-use std::error::Error;
-use std::fmt;
+use parsers::parse_offset;
 use timeclock::now;
 
 /// Helper fn for `parse_multi_time_fmt`
@@ -50,7 +45,9 @@ pub fn parse_multi_time_fmt(timestr: &str)
         return Ok(now());
     }
 
-    parse_time(timestr).or_else(|_| parse_datetime(timestr))
+    parse_offset(&timestr, now())
+        .or(parse_time(timestr))
+        .or(parse_datetime(timestr))
 }
 
 /// Rounding modes for round()
@@ -60,44 +57,6 @@ pub enum Rounding {
     Down(f32),
     Half(f32),
     None,
-}
-
-#[derive(Debug)]
-pub enum RoundingParseError {
-    PE(roundingparser::ParseError),
-}
-
-impl From<roundingparser::ParseError> for RoundingParseError {
-    fn from(err: roundingparser::ParseError) -> RoundingParseError {
-        RoundingParseError::PE(err)
-    }
-}
-
-impl Error for RoundingParseError {
-    fn description(&self) -> &str {
-        match *self {
-            RoundingParseError::PE(ref err) => err.description(),
-        }
-    }
-
-    fn cause(&self) -> Option<&Error> {
-        match *self {
-            RoundingParseError::PE(ref err) => Some(err as &Error),
-        }
-    }
-}
-
-impl fmt::Display for RoundingParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            RoundingParseError::PE(ref err) => fmt::Display::fmt(err, f),
-        }
-    }
-}
-
-pub fn parse_rounding(fmt: &str) -> Result<Rounding, RoundingParseError> {
-    let res = try!(roundingparser::rounding(fmt));
-    return Ok(res);
 }
 
 /// Round f64 with Rounding mode
@@ -137,28 +96,8 @@ mod tests {
     #[test]
     fn util_parse_multi_time_fmt_test() {
         assert!(parse_multi_time_fmt("now").is_ok());
+        assert!(parse_multi_time_fmt("-1:55").is_ok());
         assert!(parse_multi_time_fmt("dfggfh").is_err());
-    }
-
-    #[test]
-    fn parse_rounding_test() {
-        assert_eq!(parse_rounding("+15m").unwrap(), Rounding::Up(900.0));
-        assert_eq!(parse_rounding("U15m").unwrap(), Rounding::Up(900.0));
-        assert_eq!(parse_rounding("u15m").unwrap(), Rounding::Up(900.0));
-        assert_eq!(parse_rounding("7.5m").unwrap(), Rounding::Up(450.0));
-
-        assert_eq!(parse_rounding("-30m").unwrap(), Rounding::Down(1800.0));
-        assert_eq!(parse_rounding("D30m").unwrap(), Rounding::Down(1800.0));
-        assert_eq!(parse_rounding("d7.5m").unwrap(), Rounding::Down(450.0));
-
-        assert_eq!(parse_rounding("=1h").unwrap(), Rounding::Half(3600.0));
-        assert_eq!(parse_rounding("H1h").unwrap(), Rounding::Half(3600.0));
-        assert_eq!(parse_rounding("h7.5m").unwrap(), Rounding::Half(450.0));
-
-        assert_eq!(parse_rounding("+30S").unwrap(), Rounding::Up(30.0));
-        assert_eq!(parse_rounding("D30s").unwrap(), Rounding::Down(30.0));
-        assert_eq!(parse_rounding("h30s").unwrap(), Rounding::Half(30.0));
-        assert_eq!(parse_rounding("H1d").unwrap(), Rounding::Half(86400.0));
     }
 
     #[test]

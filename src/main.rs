@@ -8,6 +8,7 @@ extern crate rustc_serialize;
 mod error;
 mod timeclock;
 mod util;
+mod parsers;
 
 use chrono::*;
 use clap::{Arg, ArgGroup, App};
@@ -132,7 +133,7 @@ fn main0() -> Result<(), WorklogError> {
 
     let rounding = {
         if matches.occurrences_of("round") > 0 {
-            try!(util::parse_rounding(matches.value_of("round").unwrap()))
+            try!(parsers::parse_rounding(matches.value_of("round").unwrap()))
         } else {
             util::Rounding::None
         }
