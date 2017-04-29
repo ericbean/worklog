@@ -62,6 +62,7 @@ pub fn parse_offset(offset: &str,
 #[cfg(test)]
 mod tests {
     use super::*;
+    use timeclock::now;
 
     #[test]
     fn parse_rounding_test() {
