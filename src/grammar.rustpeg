@@ -11,8 +11,7 @@ signed_decimal -> f32
 
 units -> i32
     = u:$("D"i / "H"i / "M"i / "S"i) {
-        let u: &str = &u.to_uppercase();
-        match u {
+        match u.to_uppercase().as_ref() {
             "D" => 86400,
             "H" => 3600,
             "M" => 60,
@@ -21,23 +20,16 @@ units -> i32
         }
     }
 
-up -> Rounding
-    = ("+" / "U"i)? i:decimal j:units? {
-        Rounding::Up(i * j.unwrap_or(60) as f32)
-    }
-
-down -> Rounding
-    = ("-" / "D"i) i:decimal j:units? {
-        Rounding::Down(i * j.unwrap_or(60) as f32)
-    }
-
-half -> Rounding
-    = ("=" / "H"i / "E"i) i:decimal j:units? {
-        Rounding::Half(i * j.unwrap_or(60) as f32)
-    }
-
 pub rounding -> Rounding
-    = up / down / half
+    = d:$("+" / "U"i / "-" / "D"i / "=" / "H"i / "E"i)? i:decimal j:units? {
+        let seconds = i * j.unwrap_or(60) as f32;
+        match d.to_uppercase().as_ref() {
+            "+" | "U" => Rounding::Up(seconds),
+            "-" | "D" => Rounding::Down(seconds),
+            "=" | "H" => Rounding::Half(seconds),
+            _ => Rounding::Up(seconds),
+        }
+    } 
 
 
 //date & time offsets
