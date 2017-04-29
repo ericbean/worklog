@@ -9,20 +9,17 @@ decimal -> f32
 signed_decimal -> f32
     = n:$(("+" / "-")? [0-9.]+) { n.parse().unwrap() }
 
-days -> i32
-    = "D"i { 86400 }
-
-hours -> i32
-    = "H"i { 3600 }
-
-minutes -> i32
-    = "M"i { 60 }
-
-seconds -> i32
-    = "S"i { 1 }
-
 units -> i32
-    = days / hours / minutes / seconds
+    = u:$("D"i / "H"i / "M"i / "S"i) {
+        let u: &str = &u.to_uppercase();
+        match u {
+            "D" => 86400,
+            "H" => 3600,
+            "M" => 60,
+            "S" => 1,
+            _ => 0
+        }
+    }
 
 up -> Rounding
     = ("+" / "U"i)? i:decimal j:units? {
