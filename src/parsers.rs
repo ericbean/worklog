@@ -69,7 +69,7 @@ mod tests {
         assert_eq!(parse_rounding("+15m").unwrap(), Rounding::Up(900.0));
         assert_eq!(parse_rounding("U15m").unwrap(), Rounding::Up(900.0));
         assert_eq!(parse_rounding("u15m").unwrap(), Rounding::Up(900.0));
-        assert_eq!(parse_rounding("7.5m").unwrap(), Rounding::Up(450.0));
+        assert_eq!(parse_rounding("7.5").unwrap(), Rounding::Up(450.0));
 
         assert_eq!(parse_rounding("-30m").unwrap(), Rounding::Down(1800.0));
         assert_eq!(parse_rounding("D30m").unwrap(), Rounding::Down(1800.0));

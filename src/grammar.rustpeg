@@ -25,13 +25,19 @@ units -> i32
     = days / hours / minutes / seconds
 
 up -> Rounding
-    = ("+" / "U"i)? i:decimal j:units { Rounding::Up(i * j as f32) }
+    = ("+" / "U"i)? i:decimal j:units? {
+        Rounding::Up(i * j.unwrap_or(60) as f32)
+    }
 
 down -> Rounding
-    = ("-" / "D"i) i:decimal j:units { Rounding::Down(i * j as f32) }
+    = ("-" / "D"i) i:decimal j:units? {
+        Rounding::Down(i * j.unwrap_or(60) as f32)
+    }
 
 half -> Rounding
-    = ("=" / "H"i / "E"i) i:decimal j:units { Rounding::Half(i * j as f32) }
+    = ("=" / "H"i / "E"i) i:decimal j:units? {
+        Rounding::Half(i * j.unwrap_or(60) as f32)
+    }
 
 pub rounding -> Rounding
     = up / down / half
