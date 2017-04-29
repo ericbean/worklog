@@ -98,6 +98,7 @@ fn get_csv_path() -> Result<PathBuf, WorklogError> {
 fn main0() -> Result<(), WorklogError> {
     // Using std env macro rather than depending on clap's. No difference
     // as far as I can tell.
+    // The current options aren't final and will definately change again soon
     let matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
@@ -113,10 +114,13 @@ fn main0() -> Result<(), WorklogError> {
         .arg(Arg::from_usage("[log] -l, --log 'Print the full log'")
             .conflicts_with("summary")
             .conflicts_with("inout"))
-        .arg(Arg::from_usage("[round] -r, --round <ROUNDING> 'Round totals up, down, half'")
+        .arg(Arg::from_usage("[round] -r, --round-up 'Round totals up to the next quarter hour'")
             .conflicts_with("log")
             .conflicts_with("inout"))
-        .arg(Arg::from_usage("[range] -R, --range <TIME> <TIME> 'range'")
+        .arg(Arg::from_usage("[round_ex] -R, --round <ROUNDING> 'Round totals up, down, half'")
+            .conflicts_with("log")
+            .conflicts_with("inout"))
+        .arg(Arg::from_usage("[range] --range <TIME> <TIME> 'range'")
             .conflicts_with("summary")
             .conflicts_with("log")
             .conflicts_with("inout"))
@@ -133,7 +137,9 @@ fn main0() -> Result<(), WorklogError> {
 
     let rounding = {
         if matches.occurrences_of("round") > 0 {
-            try!(parsers::parse_rounding(matches.value_of("round").unwrap()))
+            try!(parsers::parse_rounding(ROUNDING_DEFAULT))
+        } else if matches.occurrences_of("round_ex") > 0 {
+            try!(parsers::parse_rounding(matches.value_of("round_ex").unwrap()))
         } else {
             util::Rounding::None
         }
