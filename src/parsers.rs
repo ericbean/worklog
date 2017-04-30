@@ -105,19 +105,17 @@ mod tests {
 
     #[test]
     fn offset_test() {
-        assert_eq!(grammar::offset("2.3s").unwrap(), 2.3);
         assert_eq!(grammar::offset("+2.3s").unwrap(), 2.3);
-        assert_eq!(grammar::offset("1.55h").unwrap(), 5580.0);
-        assert_eq!(grammar::offset("2:22").unwrap(), 8520.0);
+        assert_eq!(grammar::offset("-1.55h").unwrap(), -5580.0);
         assert_eq!(grammar::offset("+2:22").unwrap(), 8520.0);
-        assert_eq!(grammar::offset("-2:22").unwrap(), -8520.0);
+        assert_eq!(grammar::offset("_2:22").unwrap(), -8520.0);
     }
 
     #[test]
     fn parse_offset_test() {
         let ctime = now();
         let n = ctime.checked_add_signed(Duration::seconds(5580)).unwrap();
-        assert_eq!(parse_offset("1.55h", ctime).unwrap(), n);
+        assert_eq!(parse_offset("+1.55h", ctime).unwrap(), n);
     }
 
     #[test]
