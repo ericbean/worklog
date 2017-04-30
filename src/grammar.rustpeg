@@ -54,3 +54,31 @@ offset_hhmm -> f32
 
 pub offset -> f32
     = offset_units / offset_hhmm
+
+
+// time formats
+
+hour -> u32
+    = n:$([0-9]*<1,2>) { n.parse().unwrap() }
+
+minute -> u32
+    = n:$([0-9]*<2>) { n.parse().unwrap() }
+
+second -> f32
+    = n:$([0-9.]*<1,12>) { n.parse().unwrap() }
+
+meridiem -> u32
+    = a:$("AM"i / "PM"i) {
+        match a.to_uppercase().as_ref() {
+            "AM" => 0,
+            "PM" => 12,
+            _ => 0
+        }
+    }
+
+pub time -> (u32, u32, f32)
+    = h:hour ":" m:minute ":"? s:second? " "? mer:meridiem? {
+        let h = h + mer.unwrap_or(0);
+        let s = s.unwrap_or(0.0);
+        (h,m,s)
+    }

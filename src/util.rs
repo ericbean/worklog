@@ -1,22 +1,7 @@
 use chrono::*;
 use error::WorklogError;
-use parsers::parse_offset;
+use parsers::{parse_offset, parse_time};
 use timeclock::now;
-
-/// Helper fn for `parse_multi_time_fmt`
-/// Parse time from various formats. Returns the current date combined with
-/// the parsed time.
-fn parse_time(timestr: &str) -> Result<DateTime<FixedOffset>, WorklogError> {
-    let ctime = now();
-    let cdate = ctime.date();
-    let res = try!(NaiveTime::parse_from_str(&timestr, "%H:%M:%S%.f")
-        .or(NaiveTime::parse_from_str(&timestr, "%I:%M:%S%.f %p"))
-        .or(NaiveTime::parse_from_str(&timestr, "%I:%M %p"))
-        .or(NaiveTime::parse_from_str(&timestr, "%H:%M")));
-
-    // unwrap() here isn't ideal, but and_time() can panic anyway
-    Ok(cdate.and_time(res).unwrap())
-}
 
 /// Helper fn for `parse_multi_time_fmt`
 /// Parse a datetime from various formats.
@@ -39,14 +24,16 @@ fn parse_datetime(timestr: &str)
 /// Try to parse dates and times in as many formats as reasonable
 pub fn parse_multi_time_fmt(timestr: &str)
                             -> Result<DateTime<FixedOffset>, WorklogError> {
+
+    let ctime = now();
     // We can pass "now" in and get the current time.
     // Simplifies dealing with -i and -o options
     if timestr == "now" {
-        return Ok(now());
+        return Ok(ctime);
     }
 
-    parse_offset(&timestr, now())
-        .or(parse_time(timestr))
+    parse_offset(&timestr, ctime)
+        .or(parse_time(timestr, ctime))
         .or(parse_datetime(timestr))
 }
 
@@ -79,11 +66,12 @@ mod tests {
 
     #[test]
     fn util_parse_time_test() {
-        assert!(parse_time("10:31").is_ok());
-        assert!(parse_time("10:31AM").is_ok());
-        assert!(parse_time("10:31 PM").is_ok());
-        assert!(parse_time("10:31:12 PM").is_ok());
-        assert!(parse_time("10:31:12.142134366").is_ok());
+        let ctime = now();
+        assert!(parse_time("10:31", ctime).is_ok());
+        assert!(parse_time("10:31AM", ctime).is_ok());
+        assert!(parse_time("10:31 PM", ctime).is_ok());
+        assert!(parse_time("10:31:12 PM", ctime).is_ok());
+        assert!(parse_time("10:31:12.142134366", ctime).is_ok());
     }
 
     #[test]

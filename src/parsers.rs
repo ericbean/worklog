@@ -12,6 +12,10 @@ use util::Rounding;
 pub enum ParseError {
     PE(grammar::ParseError),
     Overflow,
+    Hour,
+    Minute,
+    Second,
+    Nanosecond,
 }
 
 impl From<grammar::ParseError> for ParseError {
@@ -25,13 +29,17 @@ impl Error for ParseError {
         match *self {
             ParseError::PE(ref err) => err.description(),
             ParseError::Overflow => "Invalid input",
+            ParseError::Hour => "The specified hours is invalid",
+            ParseError::Minute => "The specified minutes is invalid",
+            ParseError::Second => "The specified seconds is invalid",
+            ParseError::Nanosecond => "The specified nanoseconds is invalid",
         }
     }
 
     fn cause(&self) -> Option<&Error> {
         match *self {
             ParseError::PE(ref err) => Some(err as &Error),
-            ParseError::Overflow => None,
+            _ => None,
         }
     }
 }
@@ -40,7 +48,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             ParseError::PE(ref err) => fmt::Display::fmt(err, f),
-            ParseError::Overflow => fmt::Display::fmt(self.description(), f),
+            _ => fmt::Display::fmt(self.description(), f),
         }
     }
 }
@@ -57,6 +65,16 @@ pub fn parse_offset(offset: &str,
     let offset = Duration::seconds(offset as i64);
     time.checked_add_signed(offset).ok_or(ParseError::Overflow)
 
+}
+
+pub fn parse_time(input: &str, time: DateTime<FixedOffset>) -> Result<DateTime<FixedOffset>, ParseError> {
+    let (hour, minute, second) = try!(grammar::time(input));
+    let nanosecond = second.fract() * 1_000_000_000.0;
+    let time = try!(time.with_hour(hour).ok_or(ParseError::Hour));
+    let time = try!(time.with_minute(minute).ok_or(ParseError::Minute));
+    let time = try!(time.with_second(second as u32).ok_or(ParseError::Second));
+    let time = try!(time.with_nanosecond(nanosecond as u32).ok_or(ParseError::Nanosecond));
+    Ok(time)
 }
 
 #[cfg(test)]
@@ -100,5 +118,28 @@ mod tests {
         let ctime = now();
         let n = ctime.checked_add_signed(Duration::seconds(5580)).unwrap();
         assert_eq!(parse_offset("1.55h", ctime).unwrap(), n);
+    }
+
+    #[test]
+    fn time_test() {
+        assert_eq!(grammar::time("09:22:32").unwrap(), (9, 22, 32.0));
+        assert_eq!(grammar::time("9:22:32").unwrap(), (9, 22, 32.0));
+        assert_eq!(grammar::time("9:22:32.055").unwrap(), (9, 22, 32.055));
+        assert_eq!(grammar::time("9:22:32 Am").unwrap(), (9, 22, 32.0));
+        assert_eq!(grammar::time("9:22:32.055Pm").unwrap(), (21, 22, 32.055));
+        assert_eq!(grammar::time("9:22 Pm").unwrap(), (21, 22, 0.0));
+        // Might want to fail on these someday
+        assert_eq!(grammar::time("9:22:32. Am").unwrap(), (9, 22, 32.0));
+        assert_eq!(grammar::time("9:22: Pm").unwrap(), (21, 22, 0.0));
+        assert_eq!(grammar::time("99:22:32").unwrap(), (99, 22, 32.0));
+    }
+
+    #[test]
+    fn parse_time_test() {
+        let ctime: DateTime<FixedOffset> = "2017-04-30T15:55:31.961764802-05:00".parse().unwrap();
+        let rtime: DateTime<FixedOffset> = "2017-04-30T21:22:31.961700416-05:00".parse().unwrap();
+        assert_eq!(parse_time("9:22:31.9617 Pm", ctime).unwrap(), rtime);
+        let rtime: DateTime<FixedOffset> = "2017-04-30T09:22:00-05:00".parse().unwrap();
+        assert_eq!(parse_time("9:22", ctime).unwrap(), rtime);
     }
 }
