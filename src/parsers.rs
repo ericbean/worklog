@@ -67,6 +67,7 @@ pub fn parse_offset(offset: &str,
 
 }
 
+#[allow(dead_code)] // This function may go away if I don't find a use for it soon
 pub fn parse_time(input: &str, time: DateTime<FixedOffset>) -> Result<DateTime<FixedOffset>, ParseError> {
     let (hour, minute, second) = try!(grammar::time(input));
     let nanosecond = second.fract() * 1_000_000_000.0;
