@@ -82,3 +82,64 @@ pub time -> (u32, u32, f32)
         let s = s.unwrap_or(0.0);
         (h,m,s)
     }
+
+// time zone offsets
+
+tz_offset_hhmm -> i32
+    = s:$("+" / "-") h:hour ":" m:minute {
+        let ofst = (h * 3600) + (m * 60);
+        match s {
+            "+" => ofst as i32,
+            "-" => -(ofst as i32),
+            _ => <i32>::min_value(),
+        }
+    }
+
+tz_offset_z -> i32
+    = "Z"i { 0 }
+
+tz_offset -> i32
+    = tz_offset_hhmm / tz_offset_z
+
+
+// date formats
+
+ds = "-" / "/"
+
+year -> i32
+    = n:$([0-9]*<4>) { n.parse().unwrap() }
+
+month -> u32
+     = n:$([0-9]*<1,2>) { n.parse().unwrap() }
+
+day -> u32
+     = n:$([0-9]*<1,2>) { n.parse().unwrap() }
+
+partial_date -> (Option<i32>, Option<u32>, Option<u32>)
+    = y:year? ds? m:month? ds? d:day { (y,m,Some(d)) }
+
+dts = "T"i / " "
+
+datetime_both -> (Option<i32>, Option<u32>, Option<u32>, u32, u32, f32, Option<i32>)
+    = d:partial_date dts t:time tz:tz_offset? {
+        let (year, month, day) = d;
+        let (hour, minute, second) = t;
+        (year, month, day, hour, minute, second, tz)
+    }
+
+datetime_date -> (Option<i32>, Option<u32>, Option<u32>, u32, u32, f32, Option<i32>)
+    = d:partial_date tz:tz_offset? {
+        let (year, month, day) = d;
+        let (hour, minute, second) = (0,0,0.0);
+        (year, month, day, hour, minute, second, tz)
+    }
+
+datetime_time -> (Option<i32>, Option<u32>, Option<u32>, u32, u32, f32, Option<i32>)
+    = t:time tz:tz_offset? {
+        let (year, month, day) = (None, None, None);
+        let (hour, minute, second) = t;
+        (year, month, day, hour, minute, second, tz)
+    }
+
+pub datetime -> (Option<i32>, Option<u32>, Option<u32>, u32, u32, f32, Option<i32>)
+    = datetime_both / datetime_date / datetime_time
