@@ -1,41 +1,3 @@
-use chrono::*;
-use error::WorklogError;
-use parsers::{parse_offset, parse_time};
-use timeclock::now;
-
-/// Helper fn for `parse_multi_time_fmt`
-/// Parse a datetime from various formats.
-fn parse_datetime(timestr: &str)
-                  -> Result<DateTime<FixedOffset>, WorklogError> {
-    let ctime = now();
-    let offset = ctime.offset();
-    // reduce the number of formats to check
-    let timestr = timestr.replace("T", " ").replace("/", "-");
-    let res = try!(offset.datetime_from_str(&timestr, "%Y-%m-%d %H:%M:%S%.f")
-        .or(offset.datetime_from_str(&timestr, "%Y-%m-%d %H:%M:%S%.f"))
-        // 2016/12/18 10:31 PM not parsable?
-        // .or(offset.datetime_from_str(&timestr, "%Y-%m-%d %I:%M %p"))
-        .or(offset.datetime_from_str(&timestr, "%Y-%m-%d %H:%M")));
-
-    Ok(res)
-
-}
-
-/// Try to parse dates and times in as many formats as reasonable
-pub fn parse_multi_time_fmt(timestr: &str)
-                            -> Result<DateTime<FixedOffset>, WorklogError> {
-
-    let ctime = now();
-    // We can pass "now" in and get the current time.
-    // Simplifies dealing with -i and -o options
-    if timestr == "now" {
-        return Ok(ctime);
-    }
-
-    parse_offset(&timestr, ctime)
-        .or(parse_time(timestr, ctime))
-        .or(parse_datetime(timestr))
-}
 
 /// Rounding modes for round()
 #[derive(Copy,Clone,Debug,PartialEq)]
@@ -61,32 +23,6 @@ pub fn round(seconds: f64, rounding: Rounding) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::parse_datetime;
-    use super::parse_time;
-
-    #[test]
-    fn util_parse_time_test() {
-        let ctime = now();
-        assert!(parse_time("10:31", ctime).is_ok());
-        assert!(parse_time("10:31AM", ctime).is_ok());
-        assert!(parse_time("10:31 PM", ctime).is_ok());
-        assert!(parse_time("10:31:12 PM", ctime).is_ok());
-        assert!(parse_time("10:31:12.142134366", ctime).is_ok());
-    }
-
-    #[test]
-    fn util_parse_datetime_test() {
-        assert!(parse_datetime("2016-12-18 16:53:33.142134366").is_ok());
-        assert!(parse_datetime("2016-12-18T16:53:33").is_ok());
-        assert!(parse_datetime("2016-12-18T16:53").is_ok());
-    }
-
-    #[test]
-    fn util_parse_multi_time_fmt_test() {
-        assert!(parse_multi_time_fmt("now").is_ok());
-        assert!(parse_multi_time_fmt("-1:55").is_ok());
-        assert!(parse_multi_time_fmt("dfggfh").is_err());
-    }
 
     #[test]
     fn round_up_test() {

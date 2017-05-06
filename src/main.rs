@@ -152,8 +152,10 @@ fn main0() -> Result<(), WorklogError> {
             Direction::Out
         };
 
-        let time = matches.value_of("time").unwrap_or("now");
-        let time = try!(util::parse_multi_time_fmt(&time));
+        let time = match matches.value_of("time") {
+            Some(a) => try!(parsers::parse_datetime(&a, now()).or(parsers::parse_offset(&a, now()))),
+            None => now(),
+        };
 
         let memo = matches.value_of("memo").unwrap_or("").to_owned();
         timeclock::mark_time(dir, time, memo, &mut csv_file);
@@ -167,9 +169,10 @@ fn main0() -> Result<(), WorklogError> {
         try!(print_csv_entries(&csv_file));
 
     } else if matches.is_present("range") {
+        let time = now();
         let range = matches.values_of("range").unwrap();//.collect();
         let range: Vec<DateTime<FixedOffset>> =
-            try!(range.map(util::parse_multi_time_fmt).collect());
+            try!(range.map(|a| parsers::parse_datetime(a, time)).collect());
         try!(print_short_summary(&csv_file,
                                  range[0].date(),
                                  range[1].date(),
