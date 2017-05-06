@@ -24,12 +24,12 @@ pub fn round(seconds: f64, rounding: Rounding) -> f64 {
 mod tests {
     use super::*;
 
+    const TIME_ACTUAL: f64 = 38160.12345; // ~10:36am in seconds
+    const TIME_UP: f64 = 38700.0; // 10:45am in seconds
+    const TIME_DOWN: f64 = 37800.0; // 10:30am in seconds
+
     #[test]
     fn round_up_test() {
-        const TIME_ACTUAL: f64 = 38160.12345; // ~10:36am in seconds
-        const TIME_UP: f64 = 38700.0; // 10:45am in seconds
-        const TIME_DOWN: f64 = 37800.0; // 10:30am in seconds
-
         // round up
         let res = round(TIME_ACTUAL, Rounding::Up(900.0));
         assert_eq!(res, TIME_UP);
@@ -37,7 +37,10 @@ mod tests {
         assert_eq!(res, TIME_UP);
         let res = round(TIME_UP - 1.0, Rounding::Up(900.0));
         assert_eq!(res, TIME_UP);
+    }
 
+    #[test]
+    fn round_down_test() {
         // round down
         let res = round(TIME_ACTUAL, Rounding::Down(900.0));
         assert_eq!(res, TIME_DOWN);
@@ -45,21 +48,33 @@ mod tests {
         assert_eq!(res, TIME_DOWN);
         let res = round(TIME_DOWN + 1.0, Rounding::Down(900.0));
         assert_eq!(res, TIME_DOWN);
+    }
 
+    #[test]
+    fn round_half_test() {
         // round half
         let res = round(TIME_ACTUAL, Rounding::Half(900.0));
         assert_eq!(res, TIME_DOWN);
         let res = round(TIME_DOWN, Rounding::Half(900.0));
         assert_eq!(res, TIME_DOWN);
+    }
 
+    #[test]
+    fn round_quarter_test() {
         // round to 1/4 sec
         let res = round(TIME_ACTUAL, Rounding::Up(0.25));
         assert_eq!(res, 38160.25);
+    }
 
+    #[test]
+    fn round_zero_test() {
         // round with zero
         let res = round(TIME_ACTUAL, Rounding::Up(0.0));
         assert_eq!(res, TIME_ACTUAL);
+    }
 
+    #[test]
+    fn round_none_test() {
         // round None
         let res = round(TIME_ACTUAL, Rounding::None);
         assert_eq!(res, TIME_ACTUAL);
