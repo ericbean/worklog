@@ -153,7 +153,10 @@ fn main0() -> Result<(), WorklogError> {
         };
 
         let time = match matches.value_of("time") {
-            Some(a) => try!(parsers::parse_datetime(&a, now()).or(parsers::parse_offset(&a, now()))),
+            Some(a) => {
+                try!(parsers::parse_datetime(&a, now())
+                    .or(parsers::parse_offset(&a, now())))
+            }
             None => now(),
         };
 

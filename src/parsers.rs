@@ -68,36 +68,43 @@ pub fn parse_offset(offset: &str,
 }
 
 #[allow(dead_code)] // This function may go away if I don't find a use for it soon
-pub fn parse_time(input: &str, time: DateTime<FixedOffset>) -> Result<DateTime<FixedOffset>, ParseError> {
+pub fn parse_time(input: &str,
+                  time: DateTime<FixedOffset>)
+                  -> Result<DateTime<FixedOffset>, ParseError> {
     let (hour, minute, second) = try!(grammar::time(input));
     let nanosecond = second.fract() * 1_000_000_000.0;
     let time = try!(time.with_hour(hour).ok_or(ParseError::Hour));
     let time = try!(time.with_minute(minute).ok_or(ParseError::Minute));
     let time = try!(time.with_second(second as u32).ok_or(ParseError::Second));
-    let time = try!(time.with_nanosecond(nanosecond as u32).ok_or(ParseError::Nanosecond));
+    let time = try!(time.with_nanosecond(nanosecond as u32)
+        .ok_or(ParseError::Nanosecond));
     Ok(time)
 }
 
 
-pub fn parse_datetime(input: &str, time: DateTime<FixedOffset>) -> Result<DateTime<FixedOffset>, ParseError> {
-    let (year, month, day, hour, minute, second, tz) = try!(grammar::datetime(input));
+pub fn parse_datetime(input: &str,
+                      time: DateTime<FixedOffset>)
+                      -> Result<DateTime<FixedOffset>, ParseError> {
+    let (year, month, day, hour, minute, second, tz) =
+        try!(grammar::datetime(input));
 
     let year = year.unwrap_or(time.year());
     let month = month.unwrap_or(time.month());
     let day = day.unwrap_or(time.day());
 
-    //set timezone
+    // set timezone
     let tz = tz.unwrap_or(time.offset().utc_minus_local());
     let tzo = FixedOffset::west(tz);
     let time = tzo.ymd(year, month, day);
 
     // set the time
-    let time = time.and_hms(0,0,0);
+    let time = time.and_hms(0, 0, 0);
     let time = try!(time.with_hour(hour).ok_or(ParseError::Hour));
     let time = try!(time.with_minute(minute).ok_or(ParseError::Minute));
     let time = try!(time.with_second(second as u32).ok_or(ParseError::Second));
     let nanosecond = second.fract() * 1_000_000_000.0;
-    let time = try!(time.with_nanosecond(nanosecond as u32).ok_or(ParseError::Nanosecond));
+    let time = try!(time.with_nanosecond(nanosecond as u32)
+        .ok_or(ParseError::Nanosecond));
     Ok(time)
 }
 
@@ -158,32 +165,52 @@ mod tests {
 
     #[test]
     fn parse_time_test() {
-        let ctime: DateTime<FixedOffset> = "2017-04-30T15:55:31.961764802-05:00".parse().unwrap();
-        assert_eq!(parse_time("9:22:31.9617 Pm", ctime).unwrap().to_rfc3339(), "2017-04-30T21:22:31.961700416-05:00");
-        assert_eq!(parse_time("9:22", ctime).unwrap().to_rfc3339(), "2017-04-30T09:22:00-05:00");
+        let ctime: DateTime<FixedOffset> =
+            "2017-04-30T15:55:31.961764802-05:00".parse().unwrap();
+        assert_eq!(parse_time("9:22:31.9617 Pm", ctime).unwrap().to_rfc3339(),
+                   "2017-04-30T21:22:31.961700416-05:00");
+        assert_eq!(parse_time("9:22", ctime).unwrap().to_rfc3339(),
+                   "2017-04-30T09:22:00-05:00");
     }
 
     #[test]
     fn datetime_test() {
-        assert_eq!(grammar::datetime("4/2 9:22 Pm").unwrap(), (None, Some(4), Some(2), 21, 22, 0.0, None));
-        assert_eq!(grammar::datetime("2017-4/2 9:22 Pm").unwrap(), (Some(2017), Some(4), Some(2), 21, 22, 0.0, None));
-        assert_eq!(grammar::datetime("2017-4/2").unwrap(), (Some(2017), Some(4), Some(2), 0, 0, 0.0, None));
-        assert_eq!(grammar::datetime("9:22 Pm").unwrap(), (None, None, None, 21, 22, 0.0, None));
+        assert_eq!(grammar::datetime("4/2 9:22 Pm").unwrap(),
+                   (None, Some(4), Some(2), 21, 22, 0.0, None));
+        assert_eq!(grammar::datetime("2017-4/2 9:22 Pm").unwrap(),
+                   (Some(2017), Some(4), Some(2), 21, 22, 0.0, None));
+        assert_eq!(grammar::datetime("2017-4/2").unwrap(),
+                   (Some(2017), Some(4), Some(2), 0, 0, 0.0, None));
+        assert_eq!(grammar::datetime("9:22 Pm").unwrap(),
+                   (None, None, None, 21, 22, 0.0, None));
     }
 
     #[test]
     fn parse_datetime_test() {
-        let ctime: DateTime<FixedOffset> = "2017-04-30T15:55:31.961764802-05:00".parse().unwrap();
-        assert_eq!(parse_datetime("9:22:31.9617 Pm", ctime).unwrap().to_rfc3339(), "2017-04-30T21:22:31.961700416-05:00");
-        assert_eq!(parse_datetime("9:22", ctime).unwrap().to_rfc3339(), "2017-04-30T09:22:00-05:00");
-        assert_eq!(parse_datetime("2017-4-30 9:22", ctime).unwrap().to_rfc3339(), "2017-04-30T09:22:00-05:00");
-        assert_eq!(parse_datetime("2017-4-30", ctime).unwrap().to_rfc3339(), "2017-04-30T00:00:00-05:00");
+        let ctime: DateTime<FixedOffset> =
+            "2017-04-30T15:55:31.961764802-05:00".parse().unwrap();
+        assert_eq!(parse_datetime("9:22:31.9617 Pm", ctime)
+                       .unwrap()
+                       .to_rfc3339(),
+                   "2017-04-30T21:22:31.961700416-05:00");
+        assert_eq!(parse_datetime("9:22", ctime).unwrap().to_rfc3339(),
+                   "2017-04-30T09:22:00-05:00");
+        assert_eq!(parse_datetime("2017-4-30 9:22", ctime)
+                       .unwrap()
+                       .to_rfc3339(),
+                   "2017-04-30T09:22:00-05:00");
+        assert_eq!(parse_datetime("2017-4-30", ctime).unwrap().to_rfc3339(),
+                   "2017-04-30T00:00:00-05:00");
     }
 
     #[test]
     #[should_panic(expected = "ParseError")]
     fn parse_datetime_seperator_test() {
-        let ctime: DateTime<FixedOffset> = "2017-04-30T15:55:31.961764802-05:00".parse().unwrap();
-        assert_eq!(parse_datetime("2017-4-309:22", ctime).unwrap().to_rfc3339(), "2017-04-30T09:22:00-05:00");
+        let ctime: DateTime<FixedOffset> =
+            "2017-04-30T15:55:31.961764802-05:00".parse().unwrap();
+        assert_eq!(parse_datetime("2017-4-309:22", ctime)
+                       .unwrap()
+                       .to_rfc3339(),
+                   "2017-04-30T09:22:00-05:00");
     }
 }
