@@ -118,9 +118,9 @@ mod tests {
         assert_eq!(parse_rounding("+15m").unwrap(), Rounding::Up(900.0));
         assert_eq!(parse_rounding("U15m").unwrap(), Rounding::Up(900.0));
         assert_eq!(parse_rounding("u15m").unwrap(), Rounding::Up(900.0));
-        assert_eq!(parse_rounding("7.5").unwrap(), Rounding::Up(450.0));
 
         assert_eq!(parse_rounding("-30m").unwrap(), Rounding::Down(1800.0));
+        assert_eq!(parse_rounding("_30m").unwrap(), Rounding::Down(1800.0));
         assert_eq!(parse_rounding("D30m").unwrap(), Rounding::Down(1800.0));
         assert_eq!(parse_rounding("d7.5m").unwrap(), Rounding::Down(450.0));
 
@@ -132,6 +132,8 @@ mod tests {
         assert_eq!(parse_rounding("D30s").unwrap(), Rounding::Down(30.0));
         assert_eq!(parse_rounding("h30s").unwrap(), Rounding::Half(30.0));
         assert_eq!(parse_rounding("H1d").unwrap(), Rounding::Half(86400.0));
+        assert_eq!(parse_rounding("e1d").unwrap(), Rounding::Half(86400.0));
+        assert_eq!(parse_rounding("7.5").unwrap(), Rounding::Half(450.0));
     }
 
     #[test]

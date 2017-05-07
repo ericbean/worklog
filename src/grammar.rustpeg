@@ -21,13 +21,13 @@ units -> i32
     }
 
 pub rounding -> Rounding
-    = d:$("+" / "U"i / "-" / "D"i / "=" / "H"i / "E"i)? i:decimal j:units? {
+    = d:$("+" / "U"i / "-" / "_" / "D"i / "=" / "H"i / "E"i)? i:decimal j:units? {
         let seconds = i * j.unwrap_or(60) as f32;
         match d.to_uppercase().as_ref() {
             "+" | "U" => Rounding::Up(seconds),
-            "-" | "D" => Rounding::Down(seconds),
-            "=" | "H" => Rounding::Half(seconds),
-            _ => Rounding::Up(seconds),
+            "-" | "D" | "_" => Rounding::Down(seconds),
+            "=" | "H" | "E" => Rounding::Half(seconds),
+            _ => Rounding::Half(seconds), // default
         }
     } 
 
