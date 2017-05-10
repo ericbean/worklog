@@ -185,6 +185,8 @@ mod tests {
                    (Some(2017), Some(4), Some(2), 0, 0, 0.0, None));
         assert_eq!(grammar::datetime("9:22 Pm").unwrap(),
                    (None, None, None, 21, 22, 0.0, None));
+        assert_eq!(grammar::datetime("12:24 Pm").unwrap(),
+                   (None, None, None, 12, 24, 0.0, None));
     }
 
     #[test]
@@ -203,6 +205,13 @@ mod tests {
                    "2017-04-30T09:22:00-05:00");
         assert_eq!(parse_datetime("2017-4-30", ctime).unwrap().to_rfc3339(),
                    "2017-04-30T00:00:00-05:00");
+        // 12pm == midnight bug
+        assert_eq!(parse_datetime("12:24pm", ctime).unwrap().to_rfc3339(),
+                   "2017-04-30T12:24:00-05:00");
+        assert_eq!(parse_datetime("1:24pm", ctime).unwrap().to_rfc3339(),
+                   "2017-04-30T13:24:00-05:00");
+        assert_eq!(parse_datetime("1:24am", ctime).unwrap().to_rfc3339(),
+                   "2017-04-30T01:24:00-05:00");
     }
 
     #[test]

@@ -67,20 +67,27 @@ minute -> u32
 second -> f32
     = n:$([0-9.]*<1,12>) { n.parse().unwrap() }
 
-meridiem -> u32
+meridiem -> bool
     = a:$("AM"i / "PM"i) {
         match a.to_uppercase().as_ref() {
-            "AM" => 0,
-            "PM" => 12,
-            _ => 0
+            "AM" => false,
+            "PM" => true,
+            _ => false
         }
     }
 
 pub time -> (u32, u32, f32)
     = h:hour ":" m:minute ":"? s:second? " "? mer:meridiem? {
-        let h = h + mer.unwrap_or(0);
+        let mer = mer.unwrap_or(false);
+        let hour = {
+            if h >= 1 && h <= 11 && mer {
+                h + 12
+            } else {
+                h
+            }
+        };
         let s = s.unwrap_or(0.0);
-        (h,m,s)
+        (hour,m,s)
     }
 
 // time zone offsets
