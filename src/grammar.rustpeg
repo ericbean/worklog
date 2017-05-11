@@ -21,12 +21,12 @@ units -> i32
     }
 
 pub rounding -> Rounding
-    = d:$("+" / "U"i / "-" / "_" / "D"i / "=" / "H"i / "E"i)? i:decimal j:units? {
+    = d:$("+" / "-" / "=")? i:decimal j:units? {
         let seconds = i * j.unwrap_or(60) as f32;
         match d.to_uppercase().as_ref() {
-            "+" | "U" => Rounding::Up(seconds),
-            "-" | "D" | "_" => Rounding::Down(seconds),
-            "=" | "H" | "E" => Rounding::Half(seconds),
+            "+" => Rounding::Up(seconds),
+            "-" => Rounding::Down(seconds),
+            "=" => Rounding::Half(seconds),
             _ => Rounding::Half(seconds), // default
         }
     } 
@@ -47,7 +47,7 @@ offset_hhmm -> f32
     = h:offset_hh ":" m:offset_mm { ((h * 3600) + (m * 60)) as f32 }
 
 pub offset -> f32
-    = s:$("+" / "-" / "_") n:(offset_units / offset_hhmm) {
+    = s:$("+" / "-") n:(offset_units / offset_hhmm) {
         match s {
             "+" => n,
             "-" | "_" => -n,
