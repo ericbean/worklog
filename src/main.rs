@@ -123,7 +123,6 @@ fn main0() -> Result<(), WorklogError> {
             .conflicts_with("log")
             .conflicts_with("inout"))
         .arg(Arg::from_usage("[range] --range <TIME> <TIME> 'range'")
-            .conflicts_with("summary")
             .conflicts_with("log")
             .conflicts_with("inout"))
         .group(ArgGroup::with_name("inout").args(&["in", "out"]))
@@ -144,6 +143,23 @@ fn main0() -> Result<(), WorklogError> {
             try!(parsers::parse_rounding(matches.value_of("round_ex").unwrap()))
         } else {
             util::Rounding::None
+        }
+    };
+
+    let ctime = now();
+
+    let (start_date, end_date): (Date<FixedOffset>, Date<FixedOffset>) = {
+        if matches.is_present("range") {
+            let range = matches.values_of("range").unwrap();
+            let mut range: Vec<DateTime<FixedOffset>> =
+                try!(range.map(|a| parsers::parse_datetime(a, ctime))
+                    .collect()); // <Result<Vec<DateTime<FixedOffset>>, parsers::ParseError>>
+            range.sort();
+            (range[0].date(), range[1].date())
+        } else {
+            let ofst = ctime.offset().to_owned();
+            (Date::from_utc(naive::date::MIN, ofst),
+             Date::from_utc(naive::date::MAX, ofst))
         }
     };
 
@@ -168,20 +184,13 @@ fn main0() -> Result<(), WorklogError> {
         println!("Clocked {:#} at {}", dir, time.format("%F %I:%M %P"));
 
     } else if matches.is_present("summary") {
-        try!(print_full_summary(&csv_file, rounding));
+        try!(print_short_summary(&csv_file, start_date, end_date, rounding));
 
     } else if matches.is_present("log") {
         try!(print_csv_entries(&csv_file));
 
     } else if matches.is_present("range") {
-        let time = now();
-        let range = matches.values_of("range").unwrap();//.collect();
-        let range: Vec<DateTime<FixedOffset>> =
-            try!(range.map(|a| parsers::parse_datetime(a, time)).collect());
-        try!(print_short_summary(&csv_file,
-                                 range[0].date(),
-                                 range[1].date(),
-                                 rounding));
+        try!(print_short_summary(&csv_file, start_date, end_date, rounding));
 
     } else {
         let today = now().date();
