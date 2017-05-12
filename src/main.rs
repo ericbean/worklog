@@ -41,7 +41,7 @@ fn print_csv_entries<R: Read>(file: R) -> Result<(), WorklogError> {
     Ok(())
 }
 
-
+#[allow(dead_code)]
 fn print_full_summary<R: Read>(file: R,
                                rounding: util::Rounding)
                                -> Result<(), WorklogError> {
@@ -172,10 +172,10 @@ fn main0() -> Result<(), WorklogError> {
 
         let time = match matches.value_of("time") {
             Some(a) => {
-                try!(parsers::parse_datetime(&a, now())
-                    .or(parsers::parse_offset(&a, now())))
+                try!(parsers::parse_datetime(&a, ctime)
+                    .or(parsers::parse_offset(&a, ctime)))
             }
-            None => now(),
+            None => ctime,
         };
 
         let memo = matches.value_of("memo").unwrap_or("").to_owned();
@@ -193,7 +193,7 @@ fn main0() -> Result<(), WorklogError> {
         try!(print_short_summary(&csv_file, start_date, end_date, rounding));
 
     } else {
-        let today = now().date();
+        let today = ctime.date();
         let weekday = today.weekday() as i64;
         let days_back = (7 - WEEKSTART + weekday) % 7;
         let start_date = today - Duration::days(days_back);
