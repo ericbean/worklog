@@ -3,6 +3,7 @@ mod grammar {
 }
 
 use chrono::Duration;
+use chrono::LocalResult;
 use chrono::prelude::*;
 use std::error::Error;
 use std::fmt;
@@ -16,6 +17,8 @@ pub enum ParseError {
     Minute,
     Second,
     Nanosecond,
+    Date,
+    Ambiguous,
 }
 
 impl From<grammar::ParseError> for ParseError {
@@ -33,6 +36,8 @@ impl Error for ParseError {
             ParseError::Minute => "The specified minutes is invalid",
             ParseError::Second => "The specified seconds is invalid",
             ParseError::Nanosecond => "The specified nanoseconds is invalid",
+            ParseError::Date => "The specified date was invalid",
+            ParseError::Ambiguous => "The specified date was ambiguous",
         }
     }
 
@@ -95,7 +100,11 @@ pub fn parse_datetime(input: &str,
     // set timezone
     let tz = tz.unwrap_or(time.offset().utc_minus_local());
     let tzo = FixedOffset::west(tz);
-    let time = tzo.ymd(year, month, day);
+    let time = match tzo.ymd_opt(year, month, day) {
+        LocalResult::None => return Err(ParseError::Date),
+        LocalResult::Single(t) => t,
+        LocalResult::Ambiguous(_, _) => return Err(ParseError::Ambiguous),
+    };
 
     // set the time
     let time = time.and_hms(0, 0, 0);
@@ -105,6 +114,7 @@ pub fn parse_datetime(input: &str,
     let nanosecond = second.fract() * 1_000_000_000.0;
     let time = try!(time.with_nanosecond(nanosecond as u32)
         .ok_or(ParseError::Nanosecond));
+
     Ok(time)
 }
 
