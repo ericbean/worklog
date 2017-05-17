@@ -39,7 +39,7 @@ impl Encodable for TimeEntry {
         s.emit_struct("TimeEntry", 3, |s| {
             try!(s.emit_struct_field("dir", 0, |s| self.dir.encode(s)));
             try!(s.emit_struct_field("time", 1, |s| {
-                return s.emit_str(fmt_datetime(self.time).as_ref());
+                s.emit_str(fmt_datetime(self.time).as_ref())
             }));
             try!(s.emit_struct_field("memo", 2, |s| self.memo.encode(s)));
             Ok(())
@@ -51,20 +51,24 @@ impl Decodable for TimeEntry {
     fn decode<D: Decoder>(d: &mut D) -> Result<TimeEntry, D::Error> {
         d.read_struct("TimeEntry", 0, |d| {
             Ok(TimeEntry {
-                dir: try!(d.read_struct_field("dir", 0, |d|
-                        Decodable::decode(d))),
-                time: {
-                    let a_str: String = try!(d.read_struct_field("time", 0,
-                            |d| d.read_str()));
-                    let dt = parse_datetime(&a_str);
-                    match dt {
-                        Ok(d) => d,
-                        Err(e) => return Err(d.error(&format!("{}", e))),
-                    }
-                },
-                memo: try!(d.read_struct_field("memo", 0, |d|
-                        Decodable::decode(d))),
-            })
+                   dir: try!(d.read_struct_field("dir",
+                                                 0,
+                                                 |d| Decodable::decode(d))),
+                   time: {
+                       let a_str: String =
+                           try!(d.read_struct_field("time",
+                                                    0,
+                                                    |d| d.read_str()));
+                       let dt = parse_datetime(&a_str);
+                       match dt {
+                           Ok(d) => d,
+                           Err(e) => return Err(d.error(&format!("{}", e))),
+                       }
+                   },
+                   memo: try!(d.read_struct_field("memo",
+                                                  0,
+                                                  |d| Decodable::decode(d))),
+               })
         })
     }
 }
@@ -98,10 +102,10 @@ impl TimeEntryPair {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use chrono::*;
     use csv;
     use std::io::Cursor;
-    use super::*;
     use timeclock::Direction;
 
     fn time_helper() -> DateTime<FixedOffset> {
@@ -124,8 +128,9 @@ mod tests {
         let s = format!("In,2017-01-05T14:04:16-0600,Test\n");
         let buff = Cursor::new(s.as_bytes());
         let mut rdr = csv::Reader::from_reader(buff).has_headers(false);
-        let records =
-            rdr.decode().collect::<csv::Result<Vec<TimeEntry>>>().unwrap();
+        let records = rdr.decode()
+            .collect::<csv::Result<Vec<TimeEntry>>>()
+            .unwrap();
 
         assert_eq!(records[0].dir, Direction::In);
         assert_eq!(records[0].time, time);

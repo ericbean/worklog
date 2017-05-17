@@ -12,11 +12,9 @@ pub enum Direction {
 
 impl Encodable for Direction {
     fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
-        s.emit_enum("Direction", |s| {
-            match *self {
-                Direction::In => s.emit_enum_variant("In", 0, 0, |_| Ok(())),
-                Direction::Out => s.emit_enum_variant("Out", 0, 0, |_| Ok(())),
-            }
+        s.emit_enum("Direction", |s| match *self {
+            Direction::In => s.emit_enum_variant("In", 0, 0, |_| Ok(())),
+            Direction::Out => s.emit_enum_variant("Out", 0, 0, |_| Ok(())),
         })
     }
 }
@@ -54,9 +52,9 @@ impl fmt::Display for Direction {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use csv;
     use std::io::Cursor;
-    use super::*;
 
     #[test]
     fn encode_direction_test() {
@@ -72,8 +70,9 @@ mod tests {
         let vs = s.as_bytes();
         let buff = Cursor::new(vs);
         let mut rdr = csv::Reader::from_reader(buff).has_headers(false);
-        let records =
-            rdr.decode().collect::<csv::Result<Vec<Direction>>>().unwrap();
+        let records = rdr.decode()
+            .collect::<csv::Result<Vec<Direction>>>()
+            .unwrap();
 
         println!("\nlen={}", records.len());
         for record in records.clone() {
@@ -94,6 +93,8 @@ mod tests {
         let vs = s.as_bytes();
         let buff = Cursor::new(vs);
         let mut rdr = csv::Reader::from_reader(buff).has_headers(false);
-        let _ = rdr.decode().collect::<csv::Result<Vec<Direction>>>().unwrap();
+        let _ = rdr.decode()
+            .collect::<csv::Result<Vec<Direction>>>()
+            .unwrap();
     }
 }

@@ -118,8 +118,8 @@ impl From<TimeEntryPair> for DateRecord {
 
 #[cfg(test)]
 mod tests {
-    use chrono::*;
     use super::*;
+    use chrono::*;
     use timeclock::Combine;
 
     const DURATION: f64 = 4321.098765;

@@ -60,7 +60,7 @@ impl fmt::Display for ParseError {
 
 pub fn parse_rounding(fmt: &str) -> Result<Rounding, ParseError> {
     let res = try!(grammar::rounding(fmt));
-    return Ok(res);
+    Ok(res)
 }
 
 pub fn parse_offset(offset: &str,
@@ -82,7 +82,7 @@ pub fn parse_time(input: &str,
     let time = try!(time.with_minute(minute).ok_or(ParseError::Minute));
     let time = try!(time.with_second(second as u32).ok_or(ParseError::Second));
     let time = try!(time.with_nanosecond(nanosecond as u32)
-        .ok_or(ParseError::Nanosecond));
+                        .ok_or(ParseError::Nanosecond));
     Ok(time)
 }
 
@@ -93,12 +93,12 @@ pub fn parse_datetime(input: &str,
     let (year, month, day, hour, minute, second, tz) =
         try!(grammar::datetime(input));
 
-    let year = year.unwrap_or(time.year());
-    let month = month.unwrap_or(time.month());
-    let day = day.unwrap_or(time.day());
+    let year = year.unwrap_or_else(|| time.year());
+    let month = month.unwrap_or_else(|| time.month());
+    let day = day.unwrap_or_else(|| time.day());
 
     // set timezone
-    let tz = tz.unwrap_or(time.offset().utc_minus_local());
+    let tz = tz.unwrap_or_else(|| time.offset().utc_minus_local());
     let tzo = FixedOffset::west(tz);
     let time = match tzo.ymd_opt(year, month, day) {
         LocalResult::None => return Err(ParseError::Date),
@@ -113,7 +113,7 @@ pub fn parse_datetime(input: &str,
     let time = try!(time.with_second(second as u32).ok_or(ParseError::Second));
     let nanosecond = second.fract() * 1_000_000_000.0;
     let time = try!(time.with_nanosecond(nanosecond as u32)
-        .ok_or(ParseError::Nanosecond));
+                        .ok_or(ParseError::Nanosecond));
 
     Ok(time)
 }

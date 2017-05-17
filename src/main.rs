@@ -131,10 +131,10 @@ fn main0() -> Result<(), WorklogError> {
     let csv_path = try!(get_csv_path());
 
     let mut csv_file = try!(OpenOptions::new()
-        .read(true)
-        .write(true)
-        .create(true)
-        .open(csv_path));
+                                .read(true)
+                                .write(true)
+                                .create(true)
+                                .open(csv_path));
 
     let rounding = {
         if matches.occurrences_of("round") > 0 {
@@ -151,8 +151,7 @@ fn main0() -> Result<(), WorklogError> {
     let (start_date, end_date): (Date<FixedOffset>, Date<FixedOffset>) = {
         if matches.is_present("range") {
             let range = matches.values_of("range").unwrap();
-            let mut range: Vec<DateTime<FixedOffset>> =
-                try!(range.map(|a| parsers::parse_datetime(a, ctime))
+            let mut range: Vec<DateTime<FixedOffset>> = try!(range.map(|a| parsers::parse_datetime(a, ctime))
                     .collect()); // <Result<Vec<DateTime<FixedOffset>>, parsers::ParseError>>
             range.sort();
             (range[0].date(), range[1].date())
@@ -172,25 +171,22 @@ fn main0() -> Result<(), WorklogError> {
 
         let time = match matches.value_of("time") {
             Some(a) => {
-                try!(parsers::parse_datetime(&a, ctime)
-                    .or(parsers::parse_offset(&a, ctime)))
+                try!(parsers::parse_datetime(a, ctime)
+                         .or_else(|_| parsers::parse_offset(a, ctime)))
             }
             None => ctime,
         };
 
-        let memo = matches.value_of("memo").unwrap_or("").to_owned();
+        let memo = matches.value_of("memo").unwrap_or("");
         timeclock::mark_time(dir, time, memo, &mut csv_file);
 
         println!("Clocked {:#} at {}", dir, time.format("%F %I:%M %P"));
 
-    } else if matches.is_present("summary") {
+    } else if matches.is_present("summary") || matches.is_present("range") {
         try!(print_short_summary(&csv_file, start_date, end_date, rounding));
 
     } else if matches.is_present("log") {
         try!(print_csv_entries(&csv_file));
-
-    } else if matches.is_present("range") {
-        try!(print_short_summary(&csv_file, start_date, end_date, rounding));
 
     } else {
         let today = ctime.date();

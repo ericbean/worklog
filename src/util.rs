@@ -11,8 +11,8 @@ pub enum Rounding {
 impl Rounding {
     fn seconds(&self) -> f32 {
         match *self {
-            Rounding::Up(r) => r,
-            Rounding::Down(r) => r,
+            Rounding::Up(r) |
+            Rounding::Down(r) |
             Rounding::Half(r) => r,
             Rounding::None => 0.0,
         }

@@ -24,8 +24,8 @@ impl Error for TimeClockError {
 
     fn cause(&self) -> Option<&Error> {
         Some(match *self {
-            TimeClockError::Csv(ref err) => err as &Error,
-        })
+                 TimeClockError::Csv(ref err) => err as &Error,
+             })
     }
 }
 

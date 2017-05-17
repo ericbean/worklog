@@ -9,14 +9,14 @@ mod timeentry;
 mod traits;
 mod iterators;
 
-use chrono::*;
-use csv;
 pub use self::daterecord::DateRecord;
 pub use self::direction::Direction;
 pub use self::error::TimeClockError;
 pub use self::iterators::*;
 pub use self::timeentry::{TimeEntry, TimeEntryPair};
 pub use self::traits::*;
+use chrono::*;
+use csv;
 use std::io::SeekFrom;
 use std::io::prelude::*;
 
@@ -52,9 +52,9 @@ pub fn collect_date_records(records: Vec<TimeEntry>) -> Vec<DateRecord> {
 /// Marks the time.
 pub fn mark_time<W: Write + Seek>(dir: Direction,
                                   time: DateTime<FixedOffset>,
-                                  memo: String,
+                                  memo: &str,
                                   file: &mut W) {
-    let record = TimeEntry::new(dir, time, &memo);
+    let record = TimeEntry::new(dir, time, memo);
     // seek in case we write without reading first
     let _ = file.seek(SeekFrom::End(0));
     let mut wtr = csv::Writer::from_writer(file);
@@ -70,10 +70,10 @@ pub fn now() -> DateTime<FixedOffset> {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use chrono::*;
     // use chrono::duration::Duration;
     use std::io::Cursor;
-    use super::*;
 
     #[test]
     fn read_timesheet_test() {
