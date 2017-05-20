@@ -1,40 +1,10 @@
-use rustc_serialize::{Decodable, Decoder};
-use rustc_serialize::{Encodable, Encoder};
 use std::fmt;
 
-
-#[derive(Copy,Clone,Debug,PartialEq)]
+#[derive(Copy,Clone,Debug,PartialEq,Serialize,Deserialize)]
 pub enum Direction {
     In,
     Out,
 }
-
-
-impl Encodable for Direction {
-    fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
-        s.emit_enum("Direction", |s| match *self {
-            Direction::In => s.emit_enum_variant("In", 0, 0, |_| Ok(())),
-            Direction::Out => s.emit_enum_variant("Out", 0, 0, |_| Ok(())),
-        })
-    }
-}
-
-
-impl Decodable for Direction {
-    fn decode<D: Decoder>(d: &mut D) -> Result<Direction, D::Error> {
-        let s = match d.read_str() {
-            Ok(s) => s,
-            Err(e) => return Err(e),
-        };
-
-        match s.to_lowercase().trim().as_ref() {
-            "in" => Ok(Direction::In),
-            "out" => Ok(Direction::Out),
-            &_ => Err(d.error("Field must be \"In\" or \"Out\"")),
-        }
-    }
-}
-
 
 impl fmt::Display for Direction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

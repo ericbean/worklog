@@ -1,20 +1,8 @@
 use chrono::*;
-use rustc_serialize::{Decodable, Decoder, Encodable, Encoder};
 use std::fmt;
 use timeclock::direction::Direction;
 
-static DATETIMEFMT: &'static str = "%Y-%m-%dT%H:%M:%S%z";
-
-fn fmt_datetime(time: DateTime<FixedOffset>) -> String {
-    let dr = time.format(DATETIMEFMT);
-    format!("{}", dr)
-}
-
-fn parse_datetime(s: &str) -> ParseResult<DateTime<FixedOffset>> {
-    DateTime::parse_from_str(s, DATETIMEFMT)
-}
-
-#[derive(Clone,Debug,PartialEq)]
+#[derive(Clone,Debug,PartialEq,Serialize,Deserialize)]
 pub struct TimeEntry {
     pub dir: Direction,
     pub time: DateTime<FixedOffset>,
@@ -31,45 +19,6 @@ impl TimeEntry {
             time: time,
             memo: memo.to_owned(),
         }
-    }
-}
-
-impl Encodable for TimeEntry {
-    fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
-        s.emit_struct("TimeEntry", 3, |s| {
-            try!(s.emit_struct_field("dir", 0, |s| self.dir.encode(s)));
-            try!(s.emit_struct_field("time", 1, |s| {
-                s.emit_str(fmt_datetime(self.time).as_ref())
-            }));
-            try!(s.emit_struct_field("memo", 2, |s| self.memo.encode(s)));
-            Ok(())
-        })
-    }
-}
-
-impl Decodable for TimeEntry {
-    fn decode<D: Decoder>(d: &mut D) -> Result<TimeEntry, D::Error> {
-        d.read_struct("TimeEntry", 0, |d| {
-            Ok(TimeEntry {
-                   dir: try!(d.read_struct_field("dir",
-                                                 0,
-                                                 |d| Decodable::decode(d))),
-                   time: {
-                       let a_str: String =
-                           try!(d.read_struct_field("time",
-                                                    0,
-                                                    |d| d.read_str()));
-                       let dt = parse_datetime(&a_str);
-                       match dt {
-                           Ok(d) => d,
-                           Err(e) => return Err(d.error(&format!("{}", e))),
-                       }
-                   },
-                   memo: try!(d.read_struct_field("memo",
-                                                  0,
-                                                  |d| Decodable::decode(d))),
-               })
-        })
     }
 }
 

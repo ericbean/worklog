@@ -3,7 +3,9 @@
 extern crate chrono;
 extern crate csv;
 extern crate clap;
-extern crate rustc_serialize;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde;
 
 mod error;
 mod timeclock;

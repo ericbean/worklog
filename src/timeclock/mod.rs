@@ -22,10 +22,11 @@ use std::io::prelude::*;
 
 pub fn read_timesheet<R: Read>(file: R)
                                -> Result<Vec<TimeEntry>, TimeClockError> {
-    let mut rdr = csv::Reader::from_reader(file).has_headers(false);
-    let mut in_v = rdr.decode().collect::<csv::Result<Vec<TimeEntry>>>()?;
+    let mut rdr = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .from_reader(file);
+    let mut in_v: Vec<TimeEntry> = try!(rdr.deserialize().collect());
     in_v.sort_by_key(|k| k.time);
-
     Ok(in_v)
 }
 
@@ -57,8 +58,10 @@ pub fn mark_time<W: Write + Seek>(dir: Direction,
     let record = TimeEntry::new(dir, time, memo);
     // seek in case we write without reading first
     let _ = file.seek(SeekFrom::End(0));
-    let mut wtr = csv::Writer::from_writer(file);
-    let _ = wtr.encode(record);
+    let mut wtr = csv::WriterBuilder::new()
+        .has_headers(false)
+        .from_writer(file);
+    let _ = wtr.serialize(record);
 }
 
 /// Get the current date and time as a `DateTime`<`FixedOffset`>
