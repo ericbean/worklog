@@ -52,49 +52,10 @@ impl TimeEntryPair {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::*;
-    use csv;
-    use std::io::Cursor;
     use timeclock::Direction;
 
     fn time_helper() -> DateTime<FixedOffset> {
         DateTime::parse_from_rfc3339("2017-01-05T14:04:16-06:00").unwrap()
-    }
-
-    #[test]
-    fn timeentry_encode_test() {
-        let mut wtr = csv::Writer::from_memory();
-        let time = DateTime::parse_from_rfc3339("2017-01-05T14:04:16-06:00")
-            .unwrap();
-        let _ = wtr.encode(TimeEntry::new(Direction::In, time, "Test"));
-        assert_eq!(wtr.as_string(), "In,2017-01-05T14:04:16-0600,Test\n");
-    }
-
-    #[test]
-    fn timeentry_decode_test() {
-        let time = DateTime::parse_from_rfc3339("2017-01-05T14:04:16-06:00")
-            .unwrap();
-        let s = format!("In,2017-01-05T14:04:16-0600,Test\n");
-        let buff = Cursor::new(s.as_bytes());
-        let mut rdr = csv::Reader::from_reader(buff).has_headers(false);
-        let records = rdr.decode()
-            .collect::<csv::Result<Vec<TimeEntry>>>()
-            .unwrap();
-
-        assert_eq!(records[0].dir, Direction::In);
-        assert_eq!(records[0].time, time);
-        assert_eq!(records[0].memo, "Test");
-        assert_eq!(records.len(), 1);
-    }
-
-    #[test]
-    fn timeentry_decode_bad_date_test() {
-        let s = format!("In,sfggfh,Test\n");
-        let buff = Cursor::new(s.as_bytes());
-        let mut rdr = csv::Reader::from_reader(buff).has_headers(false);
-        let records = rdr.decode().collect::<csv::Result<Vec<TimeEntry>>>();
-
-        assert!(records.is_err());
     }
 
     #[test]

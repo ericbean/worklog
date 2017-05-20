@@ -1,7 +1,4 @@
 
-extern crate chrono;
-extern crate rustc_serialize;
-
 mod daterecord;
 mod direction;
 mod error;
@@ -74,8 +71,6 @@ pub fn now() -> DateTime<FixedOffset> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::*;
-    // use chrono::duration::Duration;
     use std::io::Cursor;
 
     #[test]
@@ -192,9 +187,9 @@ mod tests {
         let mut buff: Cursor<Vec<u8>> = Cursor::new(Vec::new());
         let time = DateTime::parse_from_rfc3339("2017-01-18T12:50:13-06:00")
             .unwrap();
-        mark_time(Direction::In, time, "Test".to_owned(), &mut buff);
+        mark_time(Direction::In, time, "Test", &mut buff);
         let v = buff.into_inner();
         let s = String::from_utf8(v).unwrap();
-        assert_eq!(s, "In,2017-01-18T12:50:13-0600,Test\n");
+        assert_eq!(s, "In,2017-01-18T12:50:13-06:00,Test\n");
     }
 }
