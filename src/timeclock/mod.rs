@@ -64,7 +64,7 @@ pub fn mark_time<W: Write + Seek>(dir: Direction,
 /// Get the current date and time as a `DateTime`<`FixedOffset`>
 pub fn now() -> DateTime<FixedOffset> {
     let lt: DateTime<Local> = Local::now();
-    DateTime::parse_from_rfc3339(lt.to_rfc3339().as_ref()).unwrap()
+    lt.with_timezone(lt.offset())
 }
 
 
