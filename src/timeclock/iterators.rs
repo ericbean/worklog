@@ -100,8 +100,7 @@ impl<I> Iterator for TimeEntryPairsIter<I>
                 Some(TimeEntryPair::new(start, end, false))
             }
             (TimeEntryOpt::In(start), TimeEntryOpt::Invalid) => {
-                let end =
-                    TimeEntry::new(Direction::Out, now(), "");
+                let end = TimeEntry::new(Direction::Out, now(), "");
                 Some(TimeEntryPair::new(start, end, false))
             }
             (TimeEntryOpt::In(start), TimeEntryOpt::Out(end)) => {

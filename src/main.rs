@@ -20,8 +20,8 @@ use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::path::PathBuf;
 use timeclock::Direction;
-use timeclock::now;
 use timeclock::TimeRecord;
+use timeclock::now;
 
 
 #[cfg(target_family = "unix")]
@@ -76,11 +76,17 @@ fn print_short_summary<R: Read>(file: R,
         if start_date <= rec.date() && rec.date() <= end_date {
             let hours = util::round(rec.seconds(), rounding) / 3600.0;
             total_hours += hours;
-         
+
             if rec.complete() {
-                println!("{} {:.2} {}", rec.date().format("%F"), hours, rec.memo());
+                println!("{} {:.2} {}",
+                         rec.date().format("%F"),
+                         hours,
+                         rec.memo());
             } else {
-                println!("{} {:.2} {} Missing record(s)", rec.date().format("%F"), hours, rec.memo());
+                println!("{} {:.2} {} Missing record(s)",
+                         rec.date().format("%F"),
+                         hours,
+                         rec.memo());
             }
         }
     }

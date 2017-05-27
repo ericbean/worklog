@@ -1,6 +1,7 @@
 use chrono::*;
 use std::fmt;
 use timeclock::direction::Direction;
+use timeclock::traits::TimeRecord;
 
 #[derive(Clone,Debug,PartialEq,Serialize,Deserialize)]
 pub struct TimeEntry {
@@ -47,7 +48,12 @@ impl TimeEntryPair {
         } else {
             m.push_str(&e.memo);
         }
-        TimeEntryPair { start: s, end: e, complete: c, memo: m}
+        TimeEntryPair {
+            start: s,
+            end: e,
+            complete: c,
+            memo: m,
+        }
     }
 
     #[allow(dead_code)]
@@ -61,7 +67,6 @@ impl TimeEntryPair {
     }
 }
 
-use timeclock::traits::TimeRecord;
 impl TimeRecord for TimeEntryPair {
     fn complete(&self) -> bool {
         self.complete
@@ -72,7 +77,10 @@ impl TimeRecord for TimeEntryPair {
     }
 
     fn duration(&self) -> f64 {
-       self.end.time.signed_duration_since(self.start.time).num_seconds() as f64
+        self.end
+            .time
+            .signed_duration_since(self.start.time)
+            .num_seconds() as f64
     }
 
     fn memo(&self) -> &str {

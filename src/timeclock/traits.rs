@@ -1,7 +1,7 @@
+use chrono::prelude::*;
 use std::iter::Iterator;
 use timeclock::DateRecord;
 use timeclock::DateRecordIter;
-use chrono::prelude::*;
 
 pub trait Combine<T = Self> {
     fn combine(&mut self, other: &T) -> bool;
