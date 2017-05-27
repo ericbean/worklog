@@ -32,7 +32,6 @@ impl DateRecord {
         self.duration
     }
 
-
     #[allow(dead_code)]
     /// Get the duration, expressed in minutes
     pub fn minutes(&self) -> f64 {
@@ -45,23 +44,11 @@ impl DateRecord {
         self.duration / 3600.0
     }
 
-
-    pub fn date(&self) -> Date<FixedOffset> {
-        self.date
-    }
-
     #[allow(dead_code)]
     // add seconds to the duration
     pub fn add_seconds(&mut self, secs: f64) {
         self.duration += secs;
     }
-
-
-    /// Returns the memo
-    pub fn memo(&self) -> &str {
-        &self.memo
-    }
-
 
     /// Append &str to the memo
     pub fn append_memo(&mut self, memo: &str) {
@@ -80,7 +67,7 @@ impl Combine for DateRecord {
         if self.date == other.date {
             self.duration += other.duration;
             self.append_memo(other.memo());
-            self.complete = self.complete & other.complete;
+            self.complete &= other.complete;
             true
         } else {
             false
@@ -93,6 +80,18 @@ impl TimeRecord for DateRecord {
     fn complete(&self) -> bool {
         self.complete
     }
+
+    fn date(&self) -> Date<FixedOffset> {
+        self.date
+    }
+
+    fn duration(&self) -> f64 {
+        self.seconds()
+    }
+
+    fn memo(&self) -> &str {
+        &self.memo
+    }
 }
 
 impl fmt::Display for DateRecord {
@@ -104,19 +103,12 @@ impl fmt::Display for DateRecord {
 
 impl From<TimeEntryPair> for DateRecord {
     fn from(tep: TimeEntryPair) -> Self {
-        let start = tep.start();
-        let end = tep.end();
-        let mut dr = DateRecord {
-            date: start.time.date(),
-            duration: end.time
-                .signed_duration_since(start.time)
-                .num_seconds() as f64,
-            memo: String::new(),
+        DateRecord {
+            date: tep.date(),
+            duration: tep.duration(),
+            memo: tep.memo().to_owned(),
             complete: tep.complete(),
-        };
-        dr.append_memo(&start.memo);
-        dr.append_memo(&end.memo);
-        dr
+        }
     }
 }
 

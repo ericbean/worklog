@@ -1,6 +1,7 @@
 use std::iter::Iterator;
 use timeclock::DateRecord;
 use timeclock::DateRecordIter;
+use chrono::prelude::*;
 
 pub trait Combine<T = Self> {
     fn combine(&mut self, other: &T) -> bool;
@@ -8,6 +9,9 @@ pub trait Combine<T = Self> {
 
 pub trait TimeRecord {
     fn complete(&self) -> bool;
+    fn date(&self) -> Date<FixedOffset>;
+    fn duration(&self) -> f64;
+    fn memo(&self) -> &str;
 }
 
 pub trait IntoDateRecords

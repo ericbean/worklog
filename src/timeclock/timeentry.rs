@@ -34,17 +34,28 @@ pub struct TimeEntryPair {
     start: TimeEntry,
     end: TimeEntry,
     complete: bool,
+    memo: String,
 }
 
 impl TimeEntryPair {
     pub fn new(s: TimeEntry, e: TimeEntry, c: bool) -> Self {
-        TimeEntryPair { start: s, end: e, complete: c }
+        let mut m = String::new();
+        m.push_str(&s.memo);
+        if !s.memo.is_empty() && !e.memo.is_empty() {
+            m.push_str(", ");
+            m.push_str(&e.memo);
+        } else {
+            m.push_str(&e.memo);
+        }
+        TimeEntryPair { start: s, end: e, complete: c, memo: m}
     }
 
+    #[allow(dead_code)]
     pub fn start(&self) -> &TimeEntry {
         &self.start
     }
 
+    #[allow(dead_code)]
     pub fn end(&self) -> &TimeEntry {
         &self.end
     }
@@ -54,6 +65,18 @@ use timeclock::traits::TimeRecord;
 impl TimeRecord for TimeEntryPair {
     fn complete(&self) -> bool {
         self.complete
+    }
+
+    fn date(&self) -> Date<FixedOffset> {
+        self.start.time.date()
+    }
+
+    fn duration(&self) -> f64 {
+       self.end.time.signed_duration_since(self.start.time).num_seconds() as f64
+    }
+
+    fn memo(&self) -> &str {
+        &self.memo
     }
 }
 
