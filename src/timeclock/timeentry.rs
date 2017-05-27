@@ -33,11 +33,12 @@ impl fmt::Display for TimeEntry {
 pub struct TimeEntryPair {
     start: TimeEntry,
     end: TimeEntry,
+    complete: bool,
 }
 
 impl TimeEntryPair {
-    pub fn new(s: TimeEntry, e: TimeEntry) -> Self {
-        TimeEntryPair { start: s, end: e }
+    pub fn new(s: TimeEntry, e: TimeEntry, c: bool) -> Self {
+        TimeEntryPair { start: s, end: e, complete: c }
     }
 
     pub fn start(&self) -> &TimeEntry {
@@ -46,6 +47,13 @@ impl TimeEntryPair {
 
     pub fn end(&self) -> &TimeEntry {
         &self.end
+    }
+}
+
+use timeclock::traits::TimeRecord;
+impl TimeRecord for TimeEntryPair {
+    fn complete(&self) -> bool {
+        self.complete
     }
 }
 
@@ -75,7 +83,7 @@ mod tests {
         let time = time_helper();
         let te_a = TimeEntry::new(Direction::In, time, "Test");
         let te_b = TimeEntry::new(Direction::Out, time, "Test");
-        let tep = TimeEntryPair::new(te_a.clone(), te_b.clone());
+        let tep = TimeEntryPair::new(te_a.clone(), te_b.clone(), true);
         assert_eq!(tep.start(), &te_a);
         assert_eq!(tep.end(), &te_b);
     }

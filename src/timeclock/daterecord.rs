@@ -3,33 +3,18 @@
 use chrono::prelude::*;
 use std::fmt;
 use timeclock::Combine;
-use timeclock::TimeEntry;
 use timeclock::TimeEntryPair;
-
 
 #[derive(Clone,Debug)]
 pub struct DateRecord {
     date: Date<FixedOffset>,
     duration: f64,
     memo: String,
+    complete: bool,
 }
 
 
 impl DateRecord {
-    pub fn from_time_entries(start: &TimeEntry, end: &TimeEntry) -> DateRecord {
-        let mut dr = DateRecord {
-            date: start.time.date(),
-            duration: end.time
-                .signed_duration_since(start.time)
-                .num_seconds() as f64,
-            memo: String::new(),
-        };
-        dr.append_memo(&start.memo);
-        dr.append_memo(&end.memo);
-        dr
-    }
-
-
     #[allow(dead_code)]
     /// Construct a DateRecord from it's constituent parts
     pub fn from_parts(date: Date<FixedOffset>, dur: f64, memo: &str) -> Self {
@@ -37,6 +22,7 @@ impl DateRecord {
             date: date,
             duration: dur,
             memo: memo.to_owned(),
+            complete: false,
         }
     }
 
@@ -94,6 +80,7 @@ impl Combine for DateRecord {
         if self.date == other.date {
             self.duration += other.duration;
             self.append_memo(other.memo());
+            self.complete = self.complete & other.complete;
             true
         } else {
             false
@@ -101,6 +88,12 @@ impl Combine for DateRecord {
     }
 }
 
+use timeclock::traits::TimeRecord;
+impl TimeRecord for DateRecord {
+    fn complete(&self) -> bool {
+        self.complete
+    }
+}
 
 impl fmt::Display for DateRecord {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -109,10 +102,21 @@ impl fmt::Display for DateRecord {
     }
 }
 
-
 impl From<TimeEntryPair> for DateRecord {
     fn from(tep: TimeEntryPair) -> Self {
-        DateRecord::from_time_entries(tep.start(), tep.end())
+        let start = tep.start();
+        let end = tep.end();
+        let mut dr = DateRecord {
+            date: start.time.date(),
+            duration: end.time
+                .signed_duration_since(start.time)
+                .num_seconds() as f64,
+            memo: String::new(),
+            complete: tep.complete(),
+        };
+        dr.append_memo(&start.memo);
+        dr.append_memo(&end.memo);
+        dr
     }
 }
 
@@ -170,16 +174,6 @@ mod tests {
         assert_eq!(a.date(), a.date());
         assert_eq!(a.seconds(), DURATION * 2.0);
         assert_eq!(a.memo(), "Test, Test");
-    }
-
-    #[test]
-    fn fmt_debug_test() {
-        let dr = daterecord_helper("2017-01-07");
-        let s = format!("{:?}", dr);
-        println!("{:?}", dr);
-        assert!(s ==
-                "DateRecord { date: 2017-01-07-06:00, \
-                duration: 4321.098765, memo: \"Test\" }")
     }
 
     #[test]

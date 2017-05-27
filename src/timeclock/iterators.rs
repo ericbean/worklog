@@ -95,31 +95,31 @@ impl<I> Iterator for TimeEntryPairsIter<I>
             (TimeEntryOpt::In(start), TimeEntryOpt::In(saved)) => {
                 let mut end = start.clone();
                 end.dir = Direction::Out;
-                end.memo = String::from("Missing clock out.");
+                end.memo = String::new();
                 self.buf = TimeEntryOpt::from(saved);
-                Some(TimeEntryPair::new(start, end))
+                Some(TimeEntryPair::new(start, end, false))
             }
             (TimeEntryOpt::In(start), TimeEntryOpt::Invalid) => {
                 let end =
-                    TimeEntry::new(Direction::Out, now(), "Still clocked in.");
-                Some(TimeEntryPair::new(start, end))
+                    TimeEntry::new(Direction::Out, now(), "");
+                Some(TimeEntryPair::new(start, end, false))
             }
             (TimeEntryOpt::In(start), TimeEntryOpt::Out(end)) => {
-                Some(TimeEntryPair::new(start, end))
+                Some(TimeEntryPair::new(start, end, true))
             }
             (TimeEntryOpt::Out(end), TimeEntryOpt::In(saved)) |
             (TimeEntryOpt::Out(end), TimeEntryOpt::Out(saved)) => {
                 let mut start = end.clone();
                 start.dir = Direction::In;
-                start.memo = String::from("Missing clock in.");
+                start.memo = String::new();
                 self.buf = TimeEntryOpt::from(saved);
-                Some(TimeEntryPair::new(start, end))
+                Some(TimeEntryPair::new(start, end, false))
             }
             (TimeEntryOpt::Out(end), TimeEntryOpt::Invalid) => {
                 let mut start = end.clone();
                 start.dir = Direction::In;
-                start.memo = String::from("Missing clock in.");
-                Some(TimeEntryPair::new(start, end))
+                start.memo = String::new();
+                Some(TimeEntryPair::new(start, end, false))
             }
             (TimeEntryOpt::Invalid, TimeEntryOpt::Out(_)) => unreachable!(), 
             (TimeEntryOpt::Invalid, TimeEntryOpt::In(_)) => unreachable!(), 
@@ -149,7 +149,7 @@ mod tests {
     fn date_record_iter_test() {
         let te_a = TimeEntry::new(Direction::In, now(), "Entry A");
         let te_b = TimeEntry::new(Direction::Out, now(), "Entry B");
-        let tep = TimeEntryPair::new(te_a, te_b);
+        let tep = TimeEntryPair::new(te_a, te_b, true);
         let v = vec![tep];
         let driter = DateRecordIter { v: v.into_iter() };
 
@@ -186,7 +186,7 @@ mod tests {
             let (s, e) = (pair.start(), pair.end());
             assert_eq!(s.dir, Direction::In);
             assert_eq!(e.dir, Direction::Out);
-            assert_eq!(e.memo, "Still clocked in.");
+            assert_eq!(e.memo, "");
         }
     }
 
