@@ -44,30 +44,11 @@ fn print_csv_entries<R: Read>(file: R) -> Result<(), WorklogError> {
     Ok(())
 }
 
-#[allow(dead_code)]
-fn print_full_summary<R: Read>(file: R,
-                               rounding: util::Rounding)
-                               -> Result<(), WorklogError> {
-    let csv_entries = try!(timeclock::read_timesheet(file));
-    let records = timeclock::collect_date_records(csv_entries);
-
-    let mut total_hours: f64 = 0.0;
-    for rec in records {
-        let hours = util::round(rec.duration(), rounding) / 3600.0;
-        total_hours += hours;
-        println!("{} {:.2} {}", rec.date().format("%F"), hours, rec.memo());
-    }
-
-    println!("Total Hours: {:.2}", total_hours);
-    Ok(())
-}
-
-
-fn print_short_summary<R: Read>(file: R,
-                                start_date: Date<FixedOffset>,
-                                end_date: Date<FixedOffset>,
-                                rounding: util::Rounding)
-                                -> Result<(), WorklogError> {
+fn print_summary<R: Read>(file: R,
+                          start_date: Date<FixedOffset>,
+                          end_date: Date<FixedOffset>,
+                          rounding: util::Rounding)
+                          -> Result<(), WorklogError> {
     let csv_entries = try!(timeclock::read_timesheet(file));
     let records = timeclock::collect_date_records(csv_entries);
 
@@ -197,7 +178,7 @@ fn main0() -> Result<(), WorklogError> {
         println!("Clocked {:#} at {}", dir, time.format("%F %I:%M %P"));
 
     } else if matches.is_present("summary") || matches.is_present("range") {
-        try!(print_short_summary(&csv_file, start_date, end_date, rounding));
+        try!(print_summary(&csv_file, start_date, end_date, rounding));
 
     } else if matches.is_present("log") {
         try!(print_csv_entries(&csv_file));
@@ -207,7 +188,7 @@ fn main0() -> Result<(), WorklogError> {
         let weekday = today.weekday() as i64;
         let days_back = (7 - WEEKSTART + weekday) % 7;
         let start_date = today - Duration::days(days_back);
-        try!(print_short_summary(&csv_file, start_date, today, rounding));
+        try!(print_summary(&csv_file, start_date, today, rounding));
     }
 
     Ok(())
