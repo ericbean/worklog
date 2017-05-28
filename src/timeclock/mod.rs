@@ -23,7 +23,7 @@ pub fn read_timesheet<R: Read>(file: R)
         .has_headers(false)
         .from_reader(file);
     let mut in_v: Vec<TimeEntry> = try!(rdr.deserialize().collect());
-    in_v.sort_by_key(|k| k.time);
+    in_v.sort_by_key(|k| k.time());
     Ok(in_v)
 }
 
@@ -83,13 +83,13 @@ mod tests {
         let buff = Cursor::new(s.as_bytes());
         let records = read_timesheet(buff).unwrap();
         for slc in records.chunks(2) {
-            assert!(slc[0].dir == Direction::In);
-            assert!(slc[1].dir == Direction::Out);
+            assert!(slc[0].direction() == Direction::In);
+            assert!(slc[1].direction() == Direction::Out);
         }
         // test ordering
-        assert!(records[0].time < records[1].time);
-        assert!(records[1].time < records[2].time);
-        assert!(records[2].time < records[3].time);
+        assert!(records[0].time() < records[1].time());
+        assert!(records[1].time() < records[2].time());
+        assert!(records[2].time() < records[3].time());
     }
 
 
@@ -123,8 +123,8 @@ mod tests {
         assert!(records.len() == 4);
 
         for tep in records {
-            assert!(tep.start().dir == Direction::In);
-            assert!(tep.end().dir == Direction::Out);
+            assert!(tep.start().direction() == Direction::In);
+            assert!(tep.end().direction() == Direction::Out);
         }
     }
 
@@ -141,8 +141,8 @@ mod tests {
         assert!(records.len() == 2);
 
         for tep in records {
-            assert!(tep.start().dir == Direction::In);
-            assert!(tep.end().dir == Direction::Out);
+            assert!(tep.start().direction() == Direction::In);
+            assert!(tep.end().direction() == Direction::Out);
         }
     }
 

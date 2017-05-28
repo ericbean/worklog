@@ -2,8 +2,11 @@
 
 use chrono::prelude::*;
 use std::fmt;
+use timeclock::ClockEntry;
 use timeclock::Combine;
+use timeclock::TimeEntry;
 use timeclock::TimeEntryPair;
+use timeclock::traits::TimeRecord;
 
 #[derive(Clone,Debug)]
 pub struct DateRecord {
@@ -75,8 +78,26 @@ impl Combine for DateRecord {
     }
 }
 
-use timeclock::traits::TimeRecord;
-impl TimeRecord for DateRecord {
+impl TimeRecord<TimeEntry> for DateRecord {
+    fn new(s: TimeEntry, e: TimeEntry, complete: bool) -> Self {
+        let mut m = String::new();
+        m.push_str(s.memo());
+        if !s.memo().is_empty() && !e.memo().is_empty() {
+            m.push_str(", ");
+            m.push_str(e.memo());
+        } else {
+            m.push_str(e.memo());
+        }
+        DateRecord {
+            date: s.time().date(),
+            duration: e.time()
+                .signed_duration_since(s.time())
+                .num_seconds() as f64,
+            memo: m,
+            complete: complete,
+        }
+    }
+
     fn complete(&self) -> bool {
         self.complete
     }

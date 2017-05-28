@@ -1,10 +1,12 @@
 use std::iter::Iterator;
 use std::mem;
+use timeclock::ClockEntry;
 use timeclock::DateRecord;
 use timeclock::Direction;
 use timeclock::IntoDateRecords;
 use timeclock::TimeEntry;
 use timeclock::TimeEntryPair;
+use timeclock::TimeRecord;
 use timeclock::now;
 
 /// Iterator adapter to create `DateRecords`
@@ -58,7 +60,7 @@ impl From<Option<TimeEntry>> for TimeEntryOpt {
 
 impl From<TimeEntry> for TimeEntryOpt {
     fn from(te: TimeEntry) -> Self {
-        match te.dir {
+        match te.direction() {
             Direction::In => TimeEntryOpt::In(te),
             Direction::Out => TimeEntryOpt::Out(te),
         }
@@ -93,9 +95,7 @@ impl<I> Iterator for TimeEntryPairsIter<I>
         let nxt = TimeEntryOpt::from(self.v.next());
         match (self.buf.take(), nxt) {
             (TimeEntryOpt::In(start), TimeEntryOpt::In(saved)) => {
-                let mut end = start.clone();
-                end.dir = Direction::Out;
-                end.memo = String::new();
+                let end = TimeEntry::new(Direction::Out, start.time(), "");
                 self.buf = TimeEntryOpt::from(saved);
                 Some(TimeEntryPair::new(start, end, false))
             }
@@ -108,16 +108,12 @@ impl<I> Iterator for TimeEntryPairsIter<I>
             }
             (TimeEntryOpt::Out(end), TimeEntryOpt::In(saved)) |
             (TimeEntryOpt::Out(end), TimeEntryOpt::Out(saved)) => {
-                let mut start = end.clone();
-                start.dir = Direction::In;
-                start.memo = String::new();
+                let start = TimeEntry::new(Direction::In, end.time(), "");
                 self.buf = TimeEntryOpt::from(saved);
                 Some(TimeEntryPair::new(start, end, false))
             }
             (TimeEntryOpt::Out(end), TimeEntryOpt::Invalid) => {
-                let mut start = end.clone();
-                start.dir = Direction::In;
-                start.memo = String::new();
+                let start = TimeEntry::new(Direction::In, end.time(), "");
                 Some(TimeEntryPair::new(start, end, false))
             }
             (TimeEntryOpt::Invalid, TimeEntryOpt::Out(_)) => unreachable!(), 
@@ -168,8 +164,8 @@ mod tests {
 
         for pair in y {
             let (s, e) = (pair.start(), pair.end());
-            assert_eq!(s.dir, Direction::In);
-            assert_eq!(e.dir, Direction::Out);
+            assert_eq!(s.direction(), Direction::In);
+            assert_eq!(e.direction(), Direction::Out);
         }
     }
 
@@ -183,9 +179,9 @@ mod tests {
 
         for pair in y {
             let (s, e) = (pair.start(), pair.end());
-            assert_eq!(s.dir, Direction::In);
-            assert_eq!(e.dir, Direction::Out);
-            assert_eq!(e.memo, "");
+            assert_eq!(s.direction(), Direction::In);
+            assert_eq!(e.direction(), Direction::Out);
+            assert_eq!(e.memo(), "");
         }
     }
 
@@ -200,8 +196,8 @@ mod tests {
 
         for pair in y {
             let (s, e) = (pair.start(), pair.end());
-            assert_eq!(s.dir, Direction::In);
-            assert_eq!(e.dir, Direction::Out);
+            assert_eq!(s.direction(), Direction::In);
+            assert_eq!(e.direction(), Direction::Out);
         }
     }
 
@@ -216,8 +212,8 @@ mod tests {
 
         for pair in y {
             let (s, e) = (pair.start(), pair.end());
-            assert_eq!(s.dir, Direction::In);
-            assert_eq!(e.dir, Direction::Out);
+            assert_eq!(s.direction(), Direction::In);
+            assert_eq!(e.direction(), Direction::Out);
         }
     }
 
@@ -232,8 +228,8 @@ mod tests {
 
         for pair in y {
             let (s, e) = (pair.start(), pair.end());
-            assert_eq!(s.dir, Direction::In);
-            assert_eq!(e.dir, Direction::Out);
+            assert_eq!(s.direction(), Direction::In);
+            assert_eq!(e.direction(), Direction::Out);
         }
     }
 
@@ -247,8 +243,8 @@ mod tests {
 
         for pair in y {
             let (s, e) = (pair.start(), pair.end());
-            assert_eq!(s.dir, Direction::In);
-            assert_eq!(e.dir, Direction::Out);
+            assert_eq!(s.direction(), Direction::In);
+            assert_eq!(e.direction(), Direction::Out);
         }
     }
 

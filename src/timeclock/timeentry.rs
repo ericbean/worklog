@@ -1,13 +1,13 @@
 use chrono::*;
 use std::fmt;
 use timeclock::direction::Direction;
-use timeclock::traits::TimeRecord;
+use timeclock::traits::{ClockEntry, TimeRecord};
 
 #[derive(Clone,Debug,PartialEq,Serialize,Deserialize)]
 pub struct TimeEntry {
-    pub dir: Direction,
-    pub time: DateTime<FixedOffset>,
-    pub memo: String,
+    direction: Direction,
+    time: DateTime<FixedOffset>,
+    memo: String,
 }
 
 impl TimeEntry {
@@ -16,17 +16,31 @@ impl TimeEntry {
                memo: &str)
                -> Self {
         TimeEntry {
-            dir: dir,
+            direction: dir,
             time: time,
             memo: memo.to_owned(),
         }
     }
 }
 
+impl ClockEntry for TimeEntry {
+    fn direction(&self) -> Direction {
+        self.direction
+    }
+
+    fn time(&self) -> DateTime<FixedOffset> {
+        self.time
+    }
+
+    fn memo(&self) -> &str {
+        &self.memo
+    }
+}
+
 impl fmt::Display for TimeEntry {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let time = self.time.format("%F %I:%M %P");
-        f.write_fmt(format_args!("{:3} {} {}", self.dir, time, self.memo))
+        f.write_fmt(format_args!("{:3} {} {}", self.direction, time, self.memo))
     }
 }
 
@@ -39,7 +53,19 @@ pub struct TimeEntryPair {
 }
 
 impl TimeEntryPair {
-    pub fn new(s: TimeEntry, e: TimeEntry, c: bool) -> Self {
+    #[allow(dead_code)]
+    pub fn start(&self) -> &TimeEntry {
+        &self.start
+    }
+
+    #[allow(dead_code)]
+    pub fn end(&self) -> &TimeEntry {
+        &self.end
+    }
+}
+
+impl TimeRecord<TimeEntry> for TimeEntryPair {
+    fn new(s: TimeEntry, e: TimeEntry, c: bool) -> Self {
         let mut m = String::new();
         m.push_str(&s.memo);
         if !s.memo.is_empty() && !e.memo.is_empty() {
@@ -56,18 +82,6 @@ impl TimeEntryPair {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn start(&self) -> &TimeEntry {
-        &self.start
-    }
-
-    #[allow(dead_code)]
-    pub fn end(&self) -> &TimeEntry {
-        &self.end
-    }
-}
-
-impl TimeRecord for TimeEntryPair {
     fn complete(&self) -> bool {
         self.complete
     }
@@ -104,9 +118,6 @@ mod tests {
         let te = TimeEntry::new(Direction::In, time, "Test");
         let display = format!("{}", te);
         assert_eq!(display, "In  2017-01-05 02:04 pm Test");
-        let debug = format!("{:?}", te);
-        assert_eq!(debug,
-                   "TimeEntry { dir: In, time: 2017-01-05T14:04:16-06:00, memo: \"Test\" }");
     }
 
     #[test]

@@ -2,12 +2,22 @@ use chrono::prelude::*;
 use std::iter::Iterator;
 use timeclock::DateRecord;
 use timeclock::DateRecordIter;
+use timeclock::Direction;
 
 pub trait Combine<T = Self> {
     fn combine(&mut self, other: &T) -> bool;
 }
 
-pub trait TimeRecord {
+pub trait ClockEntry {
+    fn direction(&self) -> Direction;
+    fn time(&self) -> DateTime<FixedOffset>;
+    fn memo(&self) -> &str;
+}
+
+pub trait TimeRecord<T>
+    where T: ClockEntry
+{
+    fn new(T, T, bool) -> Self;
     fn complete(&self) -> bool;
     fn date(&self) -> Date<FixedOffset>;
     fn duration(&self) -> f64;
