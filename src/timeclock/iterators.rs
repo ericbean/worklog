@@ -149,7 +149,7 @@ mod tests {
         let driter = DateRecordIter { v: v.into_iter() };
 
         for dr in driter {
-            assert!(dr.seconds() < 1000.0);
+            assert!(dr.duration() < 1000.0);
         }
     }
 
@@ -264,7 +264,7 @@ mod tests {
 
         let tepiter = timeentry_pairs(v.into_iter());
         for dr in tepiter.daterecords() {
-            assert_eq!(dr.seconds(), 0.0);
+            assert_eq!(dr.duration(), 0.0);
         }
     }
 }

@@ -72,7 +72,8 @@ pub fn parse_offset(offset: &str,
 
 }
 
-#[allow(dead_code)] // This function may go away if I don't find a use for it soon
+// This function may go away if I don't find a use for it soon
+#[allow(dead_code)]
 pub fn parse_time(input: &str,
                   time: DateTime<FixedOffset>)
                   -> Result<DateTime<FixedOffset>, ParseError> {

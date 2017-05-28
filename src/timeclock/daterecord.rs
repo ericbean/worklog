@@ -30,24 +30,6 @@ impl DateRecord {
     }
 
     #[allow(dead_code)]
-    /// Get the duration, expressed in seconds
-    pub fn seconds(&self) -> f64 {
-        self.duration
-    }
-
-    #[allow(dead_code)]
-    /// Get the duration, expressed in minutes
-    pub fn minutes(&self) -> f64 {
-        self.duration / 60.0
-    }
-
-
-    /// Get the duration, expressed in hours
-    pub fn hours(&self) -> f64 {
-        self.duration / 3600.0
-    }
-
-    #[allow(dead_code)]
     // add seconds to the duration
     pub fn add_seconds(&mut self, secs: f64) {
         self.duration += secs;
@@ -107,7 +89,7 @@ impl TimeRecord<TimeEntry> for DateRecord {
     }
 
     fn duration(&self) -> f64 {
-        self.seconds()
+        self.duration
     }
 
     fn memo(&self) -> &str {
@@ -118,7 +100,7 @@ impl TimeRecord<TimeEntry> for DateRecord {
 impl fmt::Display for DateRecord {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let date = self.date.format("%F");
-        write!(f, "{} {:.2} {}", date, self.hours(), self.memo)
+        write!(f, "{} {:.2} {}", date, self.duration / 3600.0, self.memo)
     }
 }
 
@@ -150,12 +132,10 @@ mod tests {
     fn duration_methods_test() {
         let mut dr = daterecord_helper("2017-01-07");
         // check math
-        assert!(dr.seconds() == DURATION);
-        assert!(dr.minutes() == DURATION / 60.0);
-        assert!(dr.hours() == DURATION / 3600.0);
+        assert!(dr.duration() == DURATION);
         // check that addition works
         dr.add_seconds(1357.246);
-        assert!(dr.seconds() == DURATION + 1357.246);
+        assert!(dr.duration() == DURATION + 1357.246);
     }
 
     #[test]
@@ -177,7 +157,7 @@ mod tests {
         let success = a.combine(&b);
         assert!(success);
         assert_eq!(a.date(), a.date());
-        assert_eq!(a.seconds(), DURATION * 2.0);
+        assert_eq!(a.duration(), DURATION * 2.0);
         assert_eq!(a.memo(), "Test, Test");
 
         // a and c have different dates
@@ -185,7 +165,7 @@ mod tests {
         let success = a.combine(&c);
         assert!(!success);
         assert_eq!(a.date(), a.date());
-        assert_eq!(a.seconds(), DURATION * 2.0);
+        assert_eq!(a.duration(), DURATION * 2.0);
         assert_eq!(a.memo(), "Test, Test");
     }
 

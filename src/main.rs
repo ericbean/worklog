@@ -53,7 +53,7 @@ fn print_full_summary<R: Read>(file: R,
 
     let mut total_hours: f64 = 0.0;
     for rec in records {
-        let hours = util::round(rec.seconds(), rounding) / 3600.0;
+        let hours = util::round(rec.duration(), rounding) / 3600.0;
         total_hours += hours;
         println!("{} {:.2} {}", rec.date().format("%F"), hours, rec.memo());
     }
@@ -74,7 +74,7 @@ fn print_short_summary<R: Read>(file: R,
     let mut total_hours: f64 = 0.0;
     for rec in records {
         if start_date <= rec.date() && rec.date() <= end_date {
-            let hours = util::round(rec.seconds(), rounding) / 3600.0;
+            let hours = util::round(rec.duration(), rounding) / 3600.0;
             total_hours += hours;
 
             if rec.complete() {
@@ -166,7 +166,7 @@ fn main0() -> Result<(), WorklogError> {
         if matches.is_present("range") {
             let range = matches.values_of("range").unwrap();
             let mut range: Vec<DateTime<FixedOffset>> = try!(range.map(|a| parsers::parse_datetime(a, ctime))
-                    .collect()); // <Result<Vec<DateTime<FixedOffset>>, parsers::ParseError>>
+                    .collect());
             range.sort();
             (range[0].date(), range[1].date())
         } else {

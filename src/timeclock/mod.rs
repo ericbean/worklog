@@ -162,10 +162,10 @@ mod tests {
         assert_eq!(res.len(), 2);
         let dr = res.first().unwrap();
         assert_eq!(dr.date(), time.date());
-        assert_eq!(dr.hours(), 0.0);
+        assert_eq!(dr.duration(), 0.0);
         let dr = res.last().unwrap();
         assert_eq!(dr.date(), time.date() + day);
-        assert_eq!(dr.hours(), 0.0);
+        assert_eq!(dr.duration(), 0.0);
     }
 
     #[test]
@@ -178,8 +178,8 @@ mod tests {
         let records = collect_date_records(entries);
 
         assert!(records.len() == 1);
-        println!("\n{}", records[0].seconds());
-        assert!(records[0].seconds() == 3600.0);
+        println!("\n{}", records[0].duration());
+        assert!(records[0].duration() == 3600.0);
     }
 
     #[test]
