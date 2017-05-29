@@ -1,14 +1,13 @@
 
 mod daterecord;
 mod direction;
-mod error;
 mod timeentry;
 mod traits;
 mod iterators;
 
 pub use self::daterecord::DateRecord;
 pub use self::direction::Direction;
-pub use self::error::TimeClockError;
+pub use super::error::TimeClockError;
 pub use self::iterators::*;
 pub use self::timeentry::{TimeEntry, TimeEntryPair};
 pub use self::traits::*;

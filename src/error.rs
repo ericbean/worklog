@@ -4,7 +4,7 @@ use std::env;
 use std::error::Error;
 use std::fmt;
 use std::io;
-use timeclock::TimeClockError;
+use csv;
 
 #[derive(Debug)]
 pub enum WorklogError {
@@ -80,6 +80,42 @@ impl fmt::Display for WorklogError {
             WorklogError::CronoParse(ref err) => fmt::Display::fmt(err, f),
             WorklogError::TimeClock(ref err) => fmt::Display::fmt(err, f),
             WorklogError::ParseError(ref err) => fmt::Display::fmt(err, f),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum TimeClockError {
+    Csv(csv::Error),
+}
+
+
+impl From<csv::Error> for TimeClockError {
+    fn from(err: csv::Error) -> TimeClockError {
+        TimeClockError::Csv(err)
+    }
+}
+
+
+impl Error for TimeClockError {
+    fn description(&self) -> &str {
+        match *self {
+            TimeClockError::Csv(ref err) => err.description(),
+        }
+    }
+
+    fn cause(&self) -> Option<&Error> {
+        Some(match *self {
+                 TimeClockError::Csv(ref err) => err as &Error,
+             })
+    }
+}
+
+
+impl fmt::Display for TimeClockError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            TimeClockError::Csv(ref err) => fmt::Display::fmt(err, f),
         }
     }
 }
