@@ -2,11 +2,11 @@
 
 use chrono::prelude::*;
 use std::fmt;
-use timeclock::ClockEntry;
-use timeclock::Combine;
-use timeclock::TimeEntry;
-use timeclock::TimeEntryPair;
-use timeclock::traits::TimeRecord;
+use timeentry::TimeEntry;
+use timeentry::TimeEntryPair;
+use traits::ClockEntry;
+use traits::Combine;
+use traits::TimeRecord;
 
 #[derive(Clone,Debug)]
 pub struct DateRecord {
@@ -118,7 +118,7 @@ impl From<TimeEntryPair> for DateRecord {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use timeclock::Combine;
+    use traits::Combine;
 
     const DURATION: f64 = 4321.098765;
 

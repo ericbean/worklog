@@ -8,21 +8,27 @@ extern crate serde_derive;
 extern crate serde;
 
 mod error;
-mod timeclock;
 mod util;
 mod parsers;
+mod daterecord;
+mod direction;
+mod timeentry;
+mod traits;
+mod iterators;
 
 use chrono::*;
 use clap::{Arg, ArgGroup, App};
-use error::WorklogError;
+use daterecord::DateRecord;
+use direction::Direction;
+use error::{TimeClockError, WorklogError};
+use iterators::timeentry_pairs;
 use std::env;
 use std::fs::OpenOptions;
+use std::io::SeekFrom;
 use std::io::prelude::*;
 use std::path::PathBuf;
-use timeclock::Direction;
-use timeclock::TimeRecord;
-use timeclock::now;
-
+use timeentry::TimeEntry;
+use traits::*;
 
 #[cfg(target_family = "unix")]
 static CSV_FILE_NAME: &'static str = ".worklog.csv";
@@ -37,7 +43,7 @@ const WEEKSTART: i64 = Weekday::Sat as i64;
 
 
 fn print_csv_entries<R: Read>(file: R) -> Result<(), WorklogError> {
-    let csv_entries = try!(timeclock::read_timesheet(file));
+    let csv_entries = try!(read_timesheet(file));
     for rec in csv_entries {
         println!("{}", rec);
     }
@@ -49,8 +55,8 @@ fn print_summary<R: Read>(file: R,
                           end_date: Date<FixedOffset>,
                           rounding: util::Rounding)
                           -> Result<(), WorklogError> {
-    let csv_entries = try!(timeclock::read_timesheet(file));
-    let records = timeclock::collect_date_records(csv_entries);
+    let csv_entries = try!(read_timesheet(file));
+    let records = collect_date_records(csv_entries);
 
     let mut total_hours: f64 = 0.0;
     for rec in records {
@@ -89,6 +95,54 @@ fn get_csv_path() -> Result<PathBuf, WorklogError> {
     Ok(data_path)
 }
 
+pub fn read_timesheet<R: Read>(file: R)
+                               -> Result<Vec<TimeEntry>, TimeClockError> {
+    let mut rdr = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .from_reader(file);
+    let mut in_v: Vec<TimeEntry> = try!(rdr.deserialize().collect());
+    in_v.sort_by_key(|k| k.time());
+    Ok(in_v)
+}
+
+/// Reduce pairs of `TimeEntrys` into `DateRecords`
+pub fn collect_date_records(records: Vec<TimeEntry>) -> Vec<DateRecord> {
+    let mut res: Vec<DateRecord> = Vec::new();
+    for rec in timeentry_pairs(records.into_iter()).daterecords() {
+        match res.pop() {
+            Some(mut r) => {
+                if r.combine(&rec) {
+                    res.push(r);
+                } else {
+                    res.push(r);
+                    res.push(rec);
+                }
+            }
+            None => res.push(rec),
+        }
+    }
+    res
+}
+
+/// Marks the time.
+pub fn mark_time<W: Write + Seek>(dir: Direction,
+                                  time: DateTime<FixedOffset>,
+                                  memo: &str,
+                                  file: &mut W) {
+    let record = TimeEntry::new(dir, time, memo);
+    // seek in case we write without reading first
+    let _ = file.seek(SeekFrom::End(0));
+    let mut wtr = csv::WriterBuilder::new()
+        .has_headers(false)
+        .from_writer(file);
+    let _ = wtr.serialize(record);
+}
+
+/// Get the current date and time as a `DateTime`<`FixedOffset`>
+pub fn now() -> DateTime<FixedOffset> {
+    let lt: DateTime<Local> = Local::now();
+    lt.with_timezone(lt.offset())
+}
 
 fn main0() -> Result<(), WorklogError> {
     // Using std env macro rather than depending on clap's. No difference
@@ -173,7 +227,7 @@ fn main0() -> Result<(), WorklogError> {
         };
 
         let memo = matches.value_of("memo").unwrap_or("");
-        timeclock::mark_time(dir, time, memo, &mut csv_file);
+        mark_time(dir, time, memo, &mut csv_file);
 
         println!("Clocked {:#} at {}", dir, time.format("%F %I:%M %P"));
 
@@ -202,4 +256,131 @@ fn main() {
             let _ = writeln!(&mut std::io::stderr(), "Error: {}", err);
         }
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Cursor;
+    use timeentry::TimeEntryPair;
+
+    #[test]
+    fn read_timesheet_test() {
+        // test for sorting and general function
+        let s = "Out,2016-12-18T16:53:33-0600,\n\
+                 In,2016-12-19T20:54:53-0600,\n\
+                 In,2016-12-18T13:01:50-0600,\n\
+                 Out,2016-12-19T20:54:57-0600,";
+        let buff = Cursor::new(s.as_bytes());
+        let records = read_timesheet(buff).unwrap();
+        for slc in records.chunks(2) {
+            assert!(slc[0].direction() == Direction::In);
+            assert!(slc[1].direction() == Direction::Out);
+        }
+        // test ordering
+        assert!(records[0].time() < records[1].time());
+        assert!(records[1].time() < records[2].time());
+        assert!(records[2].time() < records[3].time());
+    }
+
+
+    #[test]
+    fn read_timesheet_haggis_test() {
+        // test for sorting and general function
+        let s = "Fair fa' your honest, sonsie face,\n\
+                 Great chieftain o' the pudding-race!\n\
+                 Aboon them a' ye tak your place,\n\
+                 Painch, tripe, or thairm:\n\
+                 Weel are ye wordy o' a grace\n\
+                 As lang's my arm.";
+        let buff = Cursor::new(s.as_bytes());
+        let records = read_timesheet(buff);
+        assert!(records.is_err());
+    }
+
+
+    #[test]
+    fn pair_time_entries_test() {
+        let s = "Out,2016-12-18T13:01:50-0600,\n\
+                 In,2016-12-19T20:54:57-0600,\n\
+                 Out,2016-12-20T20:50:57-0600,\n\
+                 Out,2016-12-20T20:50:59-0600,\n\
+                 In,2016-12-20T21:04:57-0600,";
+        let buff = Cursor::new(s.as_bytes());
+        let entries = read_timesheet(buff).unwrap();
+        let records = timeentry_pairs(entries.into_iter())
+            .collect::<Vec<TimeEntryPair>>();
+
+        assert!(records.len() == 4);
+
+        for tep in records {
+            assert!(tep.start().direction() == Direction::In);
+            assert!(tep.end().direction() == Direction::Out);
+        }
+    }
+
+
+    #[test]
+    fn pair_time_entries_double_in_test() {
+        let s = "In,2016-12-20T21:01:57-0600,\n\
+                 In,2016-12-20T21:04:57-0600,";
+        let buff = Cursor::new(s.as_bytes());
+        let entries = read_timesheet(buff).unwrap();
+        let records = timeentry_pairs(entries.into_iter())
+            .collect::<Vec<TimeEntryPair>>();
+
+        assert!(records.len() == 2);
+
+        for tep in records {
+            assert!(tep.start().direction() == Direction::In);
+            assert!(tep.end().direction() == Direction::Out);
+        }
+    }
+
+
+    #[test]
+    fn collect_date_records_test() {
+        let time = now();
+        let day = Duration::days(1);
+        let records = vec![TimeEntry::new(Direction::In, time, "In"),
+                           TimeEntry::new(Direction::Out, time, "Out"),
+                           TimeEntry::new(Direction::In, time, "In"),
+                           TimeEntry::new(Direction::Out, time, "Out"),
+                           TimeEntry::new(Direction::In, time + day, "In"),
+                           TimeEntry::new(Direction::Out, time + day, "Out")];
+
+        let res = collect_date_records(records);
+        assert_eq!(res.len(), 2);
+        let dr = res.first().unwrap();
+        assert_eq!(dr.date(), time.date());
+        assert_eq!(dr.duration(), 0.0);
+        let dr = res.last().unwrap();
+        assert_eq!(dr.date(), time.date() + day);
+        assert_eq!(dr.duration(), 0.0);
+    }
+
+    #[test]
+    fn collect_date_records_tz_test() {
+        // test mismatched timezones
+        let s = "In,2016-12-18T13:01:50-0500,\n\
+                 Out,2016-12-18T13:01:50-0600,";
+        let buff = Cursor::new(s.as_bytes());
+        let entries = read_timesheet(buff).unwrap();
+        let records = collect_date_records(entries);
+
+        assert!(records.len() == 1);
+        println!("\n{}", records[0].duration());
+        assert!(records[0].duration() == 3600.0);
+    }
+
+    #[test]
+    fn mark_time_test() {
+        let mut buff: Cursor<Vec<u8>> = Cursor::new(Vec::new());
+        let time = DateTime::parse_from_rfc3339("2017-01-18T12:50:13-06:00")
+            .unwrap();
+        mark_time(Direction::In, time, "Test", &mut buff);
+        let v = buff.into_inner();
+        let s = String::from_utf8(v).unwrap();
+        assert_eq!(s, "In,2017-01-18T12:50:13-06:00,Test\n");
+    }
 }

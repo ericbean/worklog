@@ -122,7 +122,7 @@ pub fn parse_datetime(input: &str,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use timeclock::now;
+    use now;
 
     #[test]
     fn parse_rounding_test() {

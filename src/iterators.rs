@@ -1,13 +1,14 @@
+
+use super::now;
+use daterecord::DateRecord;
+use direction::Direction;
 use std::iter::Iterator;
 use std::mem;
-use timeclock::ClockEntry;
-use timeclock::DateRecord;
-use timeclock::Direction;
-use timeclock::IntoDateRecords;
-use timeclock::TimeEntry;
-use timeclock::TimeEntryPair;
-use timeclock::TimeRecord;
-use timeclock::now;
+use timeentry::TimeEntry;
+use timeentry::TimeEntryPair;
+use traits::ClockEntry;
+use traits::IntoDateRecords;
+use traits::TimeRecord;
 
 /// Iterator adapter to create `DateRecords`
 pub struct DateRecordIter<I> {
@@ -134,11 +135,11 @@ impl<I> IntoDateRecords for TimeEntryPairsIter<I>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use timeclock::Direction;
-    use timeclock::IntoDateRecords;
-    use timeclock::TimeEntry;
-    use timeclock::TimeEntryPair;
-    use timeclock::now;
+    use super::now;
+    use direction::Direction;
+    use timeentry::TimeEntry;
+    use timeentry::TimeEntryPair;
+    use traits::IntoDateRecords;
 
     #[test]
     fn date_record_iter_test() {

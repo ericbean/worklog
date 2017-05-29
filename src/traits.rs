@@ -1,8 +1,8 @@
 use chrono::prelude::*;
+use daterecord::DateRecord;
+use direction::Direction;
+use iterators::DateRecordIter;
 use std::iter::Iterator;
-use timeclock::DateRecord;
-use timeclock::DateRecordIter;
-use timeclock::Direction;
 
 pub trait Combine<T = Self> {
     fn combine(&mut self, other: &T) -> bool;

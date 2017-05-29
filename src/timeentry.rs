@@ -1,7 +1,7 @@
 use chrono::*;
+use direction::Direction;
 use std::fmt;
-use timeclock::direction::Direction;
-use timeclock::traits::{ClockEntry, TimeRecord};
+use traits::{ClockEntry, TimeRecord};
 
 #[derive(Clone,Debug,PartialEq,Serialize,Deserialize)]
 pub struct TimeEntry {
@@ -105,7 +105,7 @@ impl TimeRecord<TimeEntry> for TimeEntryPair {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use timeclock::Direction;
+    use direction::Direction;
 
     fn time_helper() -> DateTime<FixedOffset> {
         DateTime::parse_from_rfc3339("2017-01-05T14:04:16-06:00").unwrap()

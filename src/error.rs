@@ -1,10 +1,10 @@
 use chrono;
+use csv;
 use parsers::ParseError;
 use std::env;
 use std::error::Error;
 use std::fmt;
 use std::io;
-use csv;
 
 #[derive(Debug)]
 pub enum WorklogError {
