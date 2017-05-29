@@ -1,11 +1,8 @@
-
 use super::now;
-use daterecord::DateRecord;
-use direction::Direction;
+use records::{DateRecord, TimeEntry, TimeEntryPair};
+use records::Direction;
 use std::iter::Iterator;
 use std::mem;
-use timeentry::TimeEntry;
-use timeentry::TimeEntryPair;
 use traits::ClockEntry;
 use traits::IntoDateRecords;
 use traits::TimeRecord;
@@ -135,8 +132,7 @@ impl<I> IntoDateRecords for TimeEntryPairsIter<I>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use direction::Direction;
-    use timeentry::{TimeEntry, TimeEntryPair};
+    use records::{TimeEntry, TimeEntryPair};
     use traits::IntoDateRecords;
 
     #[test]

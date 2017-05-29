@@ -1,7 +1,6 @@
 use chrono::prelude::*;
-use daterecord::DateRecord;
-use direction::Direction;
 use iterators::DateRecordIter;
+use records::{DateRecord, Direction};
 use std::iter::Iterator;
 
 pub trait Combine<T = Self> {

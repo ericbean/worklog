@@ -10,24 +10,20 @@ extern crate serde;
 mod error;
 mod util;
 mod parsers;
-mod daterecord;
-mod direction;
-mod timeentry;
+mod records;
 mod traits;
 mod iterators;
 
 use chrono::*;
 use clap::{Arg, ArgGroup, App};
-use daterecord::DateRecord;
-use direction::Direction;
 use error::{TimeClockError, WorklogError};
 use iterators::timeentry_pairs;
+use records::{DateRecord, Direction, TimeEntry};
 use std::env;
 use std::fs::OpenOptions;
 use std::io::SeekFrom;
 use std::io::prelude::*;
 use std::path::PathBuf;
-use timeentry::TimeEntry;
 use traits::*;
 
 #[cfg(target_family = "unix")]
@@ -261,8 +257,8 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use records::TimeEntryPair;
     use std::io::Cursor;
-    use timeentry::TimeEntryPair;
 
     #[test]
     fn read_timesheet_test() {
