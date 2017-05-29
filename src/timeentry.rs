@@ -105,7 +105,6 @@ impl TimeRecord<TimeEntry> for TimeEntryPair {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use direction::Direction;
 
     fn time_helper() -> DateTime<FixedOffset> {
         DateTime::parse_from_rfc3339("2017-01-05T14:04:16-06:00").unwrap()

@@ -135,10 +135,8 @@ impl<I> IntoDateRecords for TimeEntryPairsIter<I>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::now;
     use direction::Direction;
-    use timeentry::TimeEntry;
-    use timeentry::TimeEntryPair;
+    use timeentry::{TimeEntry, TimeEntryPair};
     use traits::IntoDateRecords;
 
     #[test]
