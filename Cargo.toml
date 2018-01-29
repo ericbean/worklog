@@ -9,6 +9,7 @@ build = "build.rs"
 clap = "~2.24.2"
 chrono = { version = "^0.3.1", features = ["serde"] }
 csv = "1.0.0-beta.3"
+error-chain = "0.11.0"
 serde = "~1.0.8"
 serde_derive = "~1.0.8"
 

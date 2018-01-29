@@ -4,10 +4,12 @@ extern crate chrono;
 extern crate csv;
 extern crate clap;
 #[macro_use]
+extern crate error_chain;
+#[macro_use]
 extern crate serde_derive;
 extern crate serde;
 
-mod error;
+mod errors;
 mod util;
 mod parsers;
 mod records;
@@ -16,7 +18,7 @@ mod iterators;
 
 use chrono::*;
 use clap::{Arg, ArgGroup, App};
-use error::{TimeClockError, WorklogError};
+use errors::*;
 use iterators::timeentry_pairs;
 use records::{DateRecord, Direction, TimeEntry};
 use std::env;
@@ -38,7 +40,7 @@ static ROUNDING_DEFAULT: &'static str = "+15m";
 const WEEKSTART: i64 = Weekday::Sat as i64;
 
 
-fn print_csv_entries<R: Read>(file: R) -> Result<(), WorklogError> {
+fn print_csv_entries<R: Read>(file: R) -> Result<()> {
     let csv_entries = try!(read_timesheet(file));
     for rec in csv_entries {
         println!("{}", rec);
@@ -50,7 +52,7 @@ fn print_summary<R: Read>(file: R,
                           start_date: Date<FixedOffset>,
                           end_date: Date<FixedOffset>,
                           rounding: util::Rounding)
-                          -> Result<(), WorklogError> {
+                          -> Result<()> {
     let csv_entries = try!(read_timesheet(file));
     let records = collect_date_records(csv_entries);
 
@@ -79,20 +81,15 @@ fn print_summary<R: Read>(file: R,
 }
 
 /// Get the path for the csv data file
-fn get_csv_path() -> Result<PathBuf, WorklogError> {
-    let mut data_path = match env::home_dir() {
-        Some(path) => path,
-        None => {
-            return Err(env::VarError::NotPresent).map_err(WorklogError::Env)
-        }
-    };
+fn get_csv_path() -> Result<PathBuf> {
+    let mut data_path = env::home_dir().ok_or_else(|| "$HOME doesn't appear to be set")?;
 
     data_path.push(CSV_FILE_NAME);
     Ok(data_path)
 }
 
 pub fn read_timesheet<R: Read>(file: R)
-                               -> Result<Vec<TimeEntry>, TimeClockError> {
+                               -> Result<Vec<TimeEntry>> {
     let mut rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .from_reader(file);
@@ -140,7 +137,7 @@ pub fn now() -> DateTime<FixedOffset> {
     lt.with_timezone(lt.offset())
 }
 
-fn main0() -> Result<(), WorklogError> {
+fn main0() -> Result<()> {
     // Using std env macro rather than depending on clap's. No difference
     // as far as I can tell.
     // The current options aren't final and will definately change again soon
