@@ -201,8 +201,8 @@ fn main0() -> Result<()> {
             (range[0].date(), range[1].date())
         } else {
             let ofst = ctime.offset().to_owned();
-            (Date::from_utc(naive::date::MIN, ofst),
-             Date::from_utc(naive::date::MAX, ofst))
+            (Date::from_utc(chrono::naive::MIN_DATE, ofst),
+             Date::from_utc(chrono::naive::MAX_DATE, ofst))
         }
     };
 
