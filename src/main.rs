@@ -1,5 +1,7 @@
 // Worklog is for recording your hours.
 //
+#![recursion_limit = "1024"]
+
 extern crate chrono;
 extern crate csv;
 extern crate clap;

@@ -1,5 +1,3 @@
-#![recursion_limit = "1024"]
-
 use parsers::{ParseError};
 use csv::Error as CsvError;
 use std::io::Error as IoError;
